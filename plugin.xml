@@ -4,7 +4,7 @@
 	<name>Collaborative Feed Reader</name>
 	<description>Share monitoring duties on RSS/Atom feeds: moderate blog comments, audit wiki changes, read new forum posts, track vendor announcements, etc.</description>
 	<author>WebGroup Media, LLC.</author>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<link>https://github.com/cerb5-plugins/cerberusweb.feed_reader</link>
 	<image>plugin.png</image>
 	
