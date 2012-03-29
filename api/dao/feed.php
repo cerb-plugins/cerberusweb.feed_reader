@@ -572,6 +572,7 @@ class Context_Feed extends Extension_DevblocksContext {
 		$view->renderSortBy = SearchFields_Feed::ID;
 		$view->renderSortAsc = false;
 		$view->renderLimit = 10;
+		$view->renderFilters = true;
 		$view->renderTemplate = 'contextlinks_chooser';
 		
 		C4_AbstractViewLoader::setView($view_id, $view);

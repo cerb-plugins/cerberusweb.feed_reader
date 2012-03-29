@@ -880,6 +880,7 @@ class Context_FeedItem extends Extension_DevblocksContext {
 		$view->renderSortBy = SearchFields_FeedItem::CREATED_DATE;
 		$view->renderSortAsc = false;
 		$view->renderLimit = 10;
+		$view->renderFilters = true;
 		$view->renderTemplate = 'contextlinks_chooser';
 		
 		C4_AbstractViewLoader::setView($view_id, $view);
