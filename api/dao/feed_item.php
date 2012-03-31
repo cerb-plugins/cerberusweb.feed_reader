@@ -207,10 +207,6 @@ class DAO_FeedItem extends C4_ORMHelper {
 	}
 	
 	private static function _translateVirtualParameters($param, $key, &$args) {
-		$join_sql =& $args['join_sql'];
-		$where_sql =& $args['where_sql']; 
-		$has_multiple_values =& $args['has_multiple_values'];
-		
 		if(!is_a($param, 'DevblocksSearchCriteria'))
 			return;
 	
@@ -218,11 +214,11 @@ class DAO_FeedItem extends C4_ORMHelper {
 		settype($param_key, 'string');
 		switch($param_key) {
 			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
-				$has_multiple_values = true;
+				$args['has_multiple_values'] = true;
 				$from_context = 'cerberusweb.contexts.feed.item';
 				$from_index = 'feed_item.id';
 				
-				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $join_sql, $where_sql);
+				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
 				break;
 		}
 	}
@@ -531,26 +527,40 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 			case SearchFields_FeedItem::URL:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__string.tpl');
 				break;
+				
 			case SearchFields_FeedItem::ID:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__number.tpl');
 				break;
+				
 			case SearchFields_FeedItem::IS_CLOSED:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__bool.tpl');
 				break;
+				
 			case SearchFields_FeedItem::CREATED_DATE:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__date.tpl');
 				break;
+				
 			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_worker.tpl');
 				break;
+				
 			case SearchFields_FeedItem::FEED_ID:
+				$options = array();
 				$feeds = DAO_Feed::getWhere();
-				$tpl->assign('feeds', $feeds);
-				$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/filter/feed.tpl');
+				
+				if(is_array($feeds))
+				foreach($feeds as $feed_id => $feed) { /* @var $feed Model_FeedItem */
+					$options[$feed_id] = $feed->name;
+				}
+				
+				$tpl->assign('options', $options);
+				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__list.tpl');
 				break;
+				
 			case SearchFields_FeedItem::FULLTEXT_COMMENT_CONTENT:
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__fulltext.tpl');
 				break;
+				
 			default:
 				// Custom Fields
 				if('cf_' == substr($field,0,3)) {
@@ -567,6 +577,10 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 		$values = !is_array($param->value) ? array($param->value) : $param->value;
 
 		switch($field) {
+			case SearchFields_FeedItem::IS_CLOSED:
+				$this->_renderCriteriaParamBoolean($param);
+				break;
+				
 			case SearchFields_FeedItem::FEED_ID:
 				$feeds = DAO_Feed::getWhere();
 				$strings = array();
@@ -585,7 +599,8 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 						$strings[] = $feeds[$val]->name;
 				}
 				echo implode(", ", $strings);
-				break;			
+				break;
+					
 			default:
 				parent::renderCriteriaParam($param);
 				break;
@@ -603,26 +618,15 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 			case SearchFields_FeedItem::GUID:
 			case SearchFields_FeedItem::TITLE:
 			case SearchFields_FeedItem::URL:
-			case 'placeholder_string':
-				// force wildcards if none used on a LIKE
-				if(($oper == DevblocksSearchCriteria::OPER_LIKE || $oper == DevblocksSearchCriteria::OPER_NOT_LIKE)
-				&& false === (strpos($value,'*'))) {
-					$value = $value.'*';
-				}
-				$criteria = new DevblocksSearchCriteria($field, $oper, $value);
+				$criteria = $this->_doSetCriteriaString($field, $oper, $value);
 				break;
+				
 			case SearchFields_FeedItem::ID:
 				$criteria = new DevblocksSearchCriteria($field,$oper,$value);
 				break;
 				
 			case SearchFields_FeedItem::CREATED_DATE:
-				@$from = DevblocksPlatform::importGPC($_REQUEST['from'],'string','');
-				@$to = DevblocksPlatform::importGPC($_REQUEST['to'],'string','');
-
-				if(empty($from)) $from = 0;
-				if(empty($to)) $to = 'today';
-
-				$criteria = new DevblocksSearchCriteria($field,$oper,array($from,$to));
+				$criteria = $this->_doSetCriteriaDate($field, $oper);
 				break;
 				
 			case SearchFields_FeedItem::IS_CLOSED:
@@ -636,8 +640,8 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 				break;
 				
 			case SearchFields_FeedItem::FEED_ID:
-				@$feed_ids = DevblocksPlatform::importGPC($_REQUEST['feed_id'],'array',array());
-				$criteria = new DevblocksSearchCriteria($field,$oper,$feed_ids);
+				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',array());
+				$criteria = new DevblocksSearchCriteria($field,$oper,$options);
 				break;
 				
 			case SearchFields_FeedItem::FULLTEXT_COMMENT_CONTENT:
