@@ -842,6 +842,10 @@ class Context_FeedItem extends Extension_DevblocksContext {
 					}
 				}
 			}
+			
+			// Watchers
+			$watchers = CerberusContexts::getWatchers('cerberusweb.contexts.feed.item', $item->id, true);
+			$token_values['watchers'] = $watchers;
 		}
 		
 		// Feed

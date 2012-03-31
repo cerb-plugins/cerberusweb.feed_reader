@@ -75,6 +75,14 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				'label' => 'Feed item',
 				'context' => 'cerberusweb.contexts.feed.item',
 			),
+			'item_watchers' => array(
+				'label' => 'Feed item watchers',
+				'context' => CerberusContexts::CONTEXT_WORKER,
+			),
+			'item_feed_watchers' => array(
+				'label' => 'Feed watchers',
+				'context' => CerberusContexts::CONTEXT_WORKER,
+			),
 			/*
 			'item_feed_id' => array(
 				'label' => 'Feed',
