@@ -343,7 +343,7 @@ class SearchFields_FeedItem implements IDevblocksSearchFields {
 		}
 		
 		// Sort by label (translation-conscious)
-		uasort($columns, create_function('$a, $b', "return strcasecmp(\$a->db_label,\$b->db_label);\n"));
+		DevblocksPlatform::sortObjects($columns, 'db_label');
 
 		return $columns;		
 	}
@@ -402,6 +402,10 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 			$this->renderTotal
 		);
 		return $objects;
+	}
+	
+	function getDataAsObjects($ids=null) {
+		return $this->_getDataAsObjects('DAO_FeedItem', $ids);
 	}
 	
 	function getDataSample($size) {
@@ -807,8 +811,12 @@ class Context_FeedItem extends Extension_DevblocksContext {
 		// Token values
 		$token_values = array();
 		
+		$token_values['_context'] = 'cerberusweb.contexts.feed.item';
+		
 		// Feed item token values
 		if($item) {
+			$token_values['_loaded'] = true;
+			$token_values['_label'] = $item->title;
 			$token_values['id'] = $item->id;
 			$token_values['created_date'] = $item->created_date;
 			$token_values['guid'] = $item->guid;
@@ -819,40 +827,16 @@ class Context_FeedItem extends Extension_DevblocksContext {
 			// URL
 			$url_writer = DevblocksPlatform::getUrlService();
 			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=feeds&i=item&id=%d-%s",$item->id, DevblocksPlatform::strToPermalink($item->title)), true);
-
-			$token_values['custom'] = array();
 			
-			$field_values = array_shift(DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed.item', $item->id));
-			if(is_array($field_values) && !empty($field_values)) {
-				foreach($field_values as $cf_id => $cf_val) {
-					if(!isset($fields[$cf_id]))
-						continue;
-					
-					// The literal value
-					if(null != $item)
-						$token_values['custom'][$cf_id] = $cf_val;
-					
-					// Stringify
-					if(is_array($cf_val))
-						$cf_val = implode(', ', $cf_val);
-						
-					if(is_string($cf_val)) {
-						if(null != $item)
-							$token_values['custom_'.$cf_id] = $cf_val;
-					}
-				}
-			}
-			
-			// Watchers
-			$watchers = CerberusContexts::getWatchers('cerberusweb.contexts.feed.item', $item->id, true);
-			$token_values['watchers'] = $watchers;
+			// Feed
+			@$feed_id = $item->feed_id;
+			$token_values['feed_id'] = $feed_id;
 		}
 		
 		// Feed
-		@$feed_id = $item->feed_id;
 		$merge_token_labels = array();
 		$merge_token_values = array();
-		CerberusContexts::getContext('cerberusweb.contexts.feed', $feed_id, $merge_token_labels, $merge_token_values, '', true);
+		CerberusContexts::getContext('cerberusweb.contexts.feed', null, $merge_token_labels, $merge_token_values, '', true);
 
 		CerberusContexts::merge(
 			'feed_',
@@ -866,6 +850,40 @@ class Context_FeedItem extends Extension_DevblocksContext {
 		return true;
 	}
 
+	function lazyLoadContextValues($token, $dictionary) {
+		if(!isset($dictionary['id']))
+			return;
+		
+		$context = 'cerberusweb.contexts.feed.item';
+		$context_id = $dictionary['id'];
+		
+		@$is_loaded = $dictionary['_loaded'];
+		$values = array();
+		
+		if(!$is_loaded) {
+			$labels = array();
+			CerberusContexts::getContext($context, $context_id, $labels, $values);
+		}
+		
+		switch($token) {
+			case 'watchers':
+				$watchers = array(
+					$token => CerberusContexts::getWatchers($context, $context_id, true),
+				);
+				$values = array_merge($values, $watchers);
+				break;
+				
+			default:
+				if(substr($token,0,7) == 'custom_') {
+					$fields = $this->_lazyLoadCustomFields($context, $context_id);
+					$values = array_merge($values, $fields);
+				}
+				break;
+		}
+		
+		return $values;
+	}	
+	
 	function getChooserView() {
 		$active_worker = CerberusApplication::getActiveWorker();
 		

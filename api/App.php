@@ -130,7 +130,7 @@ class Page_Feeds extends CerberusPageExtension {
 					$tpl->assign('item', $item);
 
 				$tab_manifests = DevblocksPlatform::getExtensions('cerberusweb.feeds.item.tab', false);
-				uasort($tab_manifests, create_function('$a, $b', "return strcasecmp(\$a->name,\$b->name);\n"));
+				DevblocksPlatform::sortObjects($tab_manifests, 'name');
 				$tpl->assign('tab_manifests', $tab_manifests);
 				
 				// Custom fields
@@ -188,7 +188,7 @@ class Page_Feeds extends CerberusPageExtension {
 				
 //			default:
 //				$tab_manifests = DevblocksPlatform::getExtensions('cerberusweb.feeds.tab', false);
-//				uasort($tab_manifests, create_function('$a, $b', "return strcasecmp(\$a->name,\$b->name);\n"));
+//				DevblocksPlatform::sortObjects($tab_manifests, 'name');
 //				$tpl->assign('tab_manifests', $tab_manifests);
 //				
 //				$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/page/index.tpl');
