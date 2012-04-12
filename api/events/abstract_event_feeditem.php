@@ -93,13 +93,19 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 		
 		$vars = parent::getValuesContexts($trigger);
 		
-		return array_merge($vals, $vars);
+		$vals_to_ctx = array_merge($vals, $vars);
+		asort($vals_to_ctx);
+		
+		return $vals_to_ctx;
 	}
 	
 	function getConditionExtensions() {
 		$labels = $this->getLabels();
 		
 		$labels['item_link'] = 'Feed item is linked';
+		
+		$labels['item_watcher_count'] = 'Feed item watcher count';
+		$labels['item_feed_watcher_count'] = 'Feed watcher count';
 		
 		$types = array(
 			'item_created_date|date' => Model_CustomField::TYPE_DATE,
@@ -112,6 +118,9 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 			'item_feed_url' => Model_CustomField::TYPE_URL,
 			
 			'item_link' => null,
+			
+			'item_feed_watcher_count' => null,
+			'item_watcher_count' => null,
 		);
 
 		$conditions = $this->_importLabelsTypesAsConditions($labels, $types);
@@ -131,6 +140,11 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				$contexts = Extension_DevblocksContext::getAll(false);
 				$tpl->assign('contexts', $contexts);
 				$tpl->display('devblocks:cerberusweb.core::events/condition_link.tpl');
+				break;
+				
+			case 'item_feed_watcher_count':
+			case 'item_watcher_count':
+				$tpl->display('devblocks:cerberusweb.core::internal/decisions/conditions/_number.tpl');
 				break;
 		}
 
@@ -184,7 +198,38 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 					$pass = false;
 				}
 				break;
-							
+
+			case 'item_feed_watcher_count':
+			case 'item_watcher_count':
+				$not = (substr($params['oper'],0,1) == '!');
+				$oper = ltrim($params['oper'],'!');
+				
+				switch($token) {
+					case 'item_feed_watcher_count':
+						$value = count($dict->item_feed_watchers);
+						break;
+						
+					case 'item_watcher_count':
+					default:
+						$value = count($dict->item_watchers);
+						break;
+				}
+				
+				switch($oper) {
+					case 'is':
+						$pass = intval($value)==intval($params['value']);
+						break;
+					case 'gt':
+						$pass = intval($value) > intval($params['value']);
+						break;
+					case 'lt':
+						$pass = intval($value) < intval($params['value']);
+						break;
+				}
+				
+				$pass = ($not) ? !$pass : $pass;
+				break;
+				
 			default:
 				$pass = false;
 				break;
