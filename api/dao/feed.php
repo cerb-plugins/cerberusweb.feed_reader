@@ -123,7 +123,10 @@ class DAO_Feed extends DevblocksORMHelper {
 				SearchFields_Feed::URL
 			);
 			
-		$join_sql = "FROM feed ";
+		$join_sql = "FROM feed ".
+			(isset($tables['context_link']) ? "INNER JOIN context_link ON (context_link.to_context = 'cerberusweb.contexts.feed' AND context_link.to_context_id = feed.id) " : " ").
+			''
+			;
 		
 		// Custom field joins
 		//list($select_sql, $join_sql, $has_multiple_values) = self::_appendSelectJoinSqlForCustomFieldTables(
@@ -220,6 +223,9 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 	const NAME = 't_name';
 	const URL = 't_url';
 	
+	const CONTEXT_LINK = 'cl_context_from';
+	const CONTEXT_LINK_ID = 'cl_context_from_id';
+	
 	/**
 	 * @return DevblocksSearchField[]
 	 */
@@ -230,6 +236,9 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 			self::ID => new DevblocksSearchField(self::ID, 'feed', 'id', $translate->_('common.id')),
 			self::NAME => new DevblocksSearchField(self::NAME, 'feed', 'name', $translate->_('common.name')),
 			self::URL => new DevblocksSearchField(self::URL, 'feed', 'url', $translate->_('common.url')),
+
+			self::CONTEXT_LINK => new DevblocksSearchField(self::CONTEXT_LINK, 'context_link', 'from_context', null),
+			self::CONTEXT_LINK_ID => new DevblocksSearchField(self::CONTEXT_LINK_ID, 'context_link', 'from_context_id', null),
 		);
 		
 		// Custom Fields
@@ -271,9 +280,13 @@ class View_Feed extends C4_AbstractView {
 			SearchFields_Feed::URL,
 		);
 		$this->addColumnsHidden(array(
+			SearchFields_Feed::CONTEXT_LINK,
+			SearchFields_Feed::CONTEXT_LINK_ID,
 		));
 		
 		$this->addParamsHidden(array(
+			SearchFields_Feed::CONTEXT_LINK,
+			SearchFields_Feed::CONTEXT_LINK_ID,
 		));
 		
 		$this->doResetCriteria();
