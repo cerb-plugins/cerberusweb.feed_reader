@@ -22,6 +22,9 @@ class DAO_FeedItem extends C4_ORMHelper {
 	
 	static function update($ids, $fields) {
 		parent::_update($ids, 'feed_item', $fields);
+		
+	    // Log the context update
+   		DevblocksPlatform::markContextChanged('cerberusweb.contexts.feed.item', $ids);
 	}
 	
 	static function updateWhere($fields, $where) {
