@@ -234,8 +234,8 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 		
 		$columns = array(
 			self::ID => new DevblocksSearchField(self::ID, 'feed', 'id', $translate->_('common.id')),
-			self::NAME => new DevblocksSearchField(self::NAME, 'feed', 'name', $translate->_('common.name')),
-			self::URL => new DevblocksSearchField(self::URL, 'feed', 'url', $translate->_('common.url')),
+			self::NAME => new DevblocksSearchField(self::NAME, 'feed', 'name', $translate->_('common.name'), Model_CustomField::TYPE_SINGLE_LINE),
+			self::URL => new DevblocksSearchField(self::URL, 'feed', 'url', $translate->_('common.url'), Model_CustomField::TYPE_SINGLE_LINE),
 
 			self::CONTEXT_LINK => new DevblocksSearchField(self::CONTEXT_LINK, 'context_link', 'from_context', null),
 			self::CONTEXT_LINK_ID => new DevblocksSearchField(self::CONTEXT_LINK_ID, 'context_link', 'from_context_id', null),
@@ -247,7 +247,7 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 		//if(is_array($fields))
 		//foreach($fields as $field_id => $field) {
 		//	$key = 'cf_'.$field_id;
-		//	$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name);
+		//	$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name,$field->type);
 		//}
 		
 		// Sort by label (translation-conscious)
@@ -594,7 +594,7 @@ class Context_Feed extends Extension_DevblocksContext {
 		$view->renderSortBy = SearchFields_Feed::ID;
 		$view->renderSortAsc = false;
 		$view->renderLimit = 10;
-		$view->renderFilters = true;
+		$view->renderFilters = false;
 		$view->renderTemplate = 'contextlinks_chooser';
 		
 		C4_AbstractViewLoader::setView($view_id, $view);

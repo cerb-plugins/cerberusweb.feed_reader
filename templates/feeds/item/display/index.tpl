@@ -3,10 +3,10 @@
 
 {include file="devblocks:cerberusweb.feed_reader::feeds/item/display/submenu.tpl"}
 
-<h2>{'feeds.item'|devblocks_translate|capitalize}</h2>
+<h1>{$item->title}</h1>
 
 <fieldset class="properties">
-	<legend>{$item->title}</legend>
+	<legend>{'feeds.item'|devblocks_translate|capitalize}</legend>
 	
 	<form action="{devblocks_url}{/devblocks_url}" method="post" style="margin-bottom:5px;">
 
