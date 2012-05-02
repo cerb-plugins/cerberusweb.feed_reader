@@ -1,5 +1,5 @@
 <?php
-class DAO_Feed extends DevblocksORMHelper {
+class DAO_Feed extends C4_ORMHelper {
 	const ID = 'id';
 	const NAME = 'name';
 	const URL = 'url';
@@ -129,13 +129,13 @@ class DAO_Feed extends DevblocksORMHelper {
 			;
 		
 		// Custom field joins
-		//list($select_sql, $join_sql, $has_multiple_values) = self::_appendSelectJoinSqlForCustomFieldTables(
-		//	$tables,
-		//	$params,
-		//	'feed.id',
-		//	$select_sql,
-		//	$join_sql
-		//);
+		list($select_sql, $join_sql, $has_multiple_values) = self::_appendSelectJoinSqlForCustomFieldTables(
+			$tables,
+			$params,
+			'feed.id',
+			$select_sql,
+			$join_sql
+		);
 				
 		$where_sql = "".
 			(!empty($wheres) ? sprintf("WHERE %s ",implode(' AND ',$wheres)) : "WHERE 1 ");
@@ -147,7 +147,7 @@ class DAO_Feed extends DevblocksORMHelper {
 			'select' => $select_sql,
 			'join' => $join_sql,
 			'where' => $where_sql,
-			'has_multiple_values' => false,
+			'has_multiple_values' => $has_multiple_values,
 			'sort' => $sort_sql,
 		);
 	}
@@ -242,13 +242,13 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 		);
 		
 		// Custom Fields
-		//$fields = DAO_CustomField::getByContext(CerberusContexts::XXX);
+		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
 
-		//if(is_array($fields))
-		//foreach($fields as $field_id => $field) {
-		//	$key = 'cf_'.$field_id;
-		//	$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name,$field->type);
-		//}
+		if(is_array($fields))
+		foreach($fields as $field_id => $field) {
+			$key = 'cf_'.$field_id;
+			$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name,$field->type);
+		}
 		
 		// Sort by label (translation-conscious)
 		DevblocksPlatform::sortObjects($columns, 'db_label');
@@ -321,8 +321,8 @@ class View_Feed extends C4_AbstractView {
 		$tpl->assign('view', $this);
 
 		// Custom fields
-		//$custom_fields = DAO_CustomField::getByContext(CerberusContexts::XXX);
-		//$tpl->assign('custom_fields', $custom_fields);
+		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$tpl->assign('custom_fields', $custom_fields);
 
 		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/feed/view.tpl');
 	}
@@ -345,7 +345,6 @@ class View_Feed extends C4_AbstractView {
 			case 'placeholder_date':
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__date.tpl');
 				break;
-			/*
 			default:
 				// Custom Fields
 				if('cf_' == substr($field,0,3)) {
@@ -354,7 +353,6 @@ class View_Feed extends C4_AbstractView {
 					echo ' ';
 				}
 				break;
-			*/
 		}
 	}
 
@@ -395,14 +393,12 @@ class View_Feed extends C4_AbstractView {
 				$criteria = new DevblocksSearchCriteria($field,$oper,$bool);
 				break;
 				
-			/*
 			default:
 				// Custom Fields
 				if(substr($field,0,3)=='cf_') {
 					$criteria = $this->_doSetCriteriaCustomField($field, substr($field,3));
 				}
 				break;
-			*/
 		}
 
 		if(!empty($criteria)) {
@@ -432,14 +428,12 @@ class View_Feed extends C4_AbstractView {
 				case 'example':
 					//$change_fields[DAO_Feed::EXAMPLE] = 'some value';
 					break;
-				/*
 				default:
 					// Custom fields
 					if(substr($k,0,3)=="cf_") {
 						$custom_fields[substr($k,3)] = $v;
 					}
 					break;
-				*/
 			}
 		}
 
@@ -467,7 +461,7 @@ class View_Feed extends C4_AbstractView {
 			DAO_Feed::update($batch_ids, $change_fields);
 
 			// Custom Fields
-			//self::_doBulkSetCustomFields(ChCustomFieldSource_Feed::ID, $custom_fields, $batch_ids);
+			self::_doBulkSetCustomFields('cerberusweb.contexts.feed', $custom_fields, $batch_ids);
 			
 			unset($batch_ids);
 		}
@@ -642,4 +636,93 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		C4_AbstractViewLoader::setView($view_id, $view);
 		return $view;
 	}
+	
+	function renderPeekPopup($context_id=0, $view_id='') {
+		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl->assign('view_id', $view_id);
+		
+		if(!empty($context_id) && null != ($feed = DAO_Feed::get($context_id))) {
+			$tpl->assign('model', $feed);
+		}
+
+		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$tpl->assign('custom_fields', $custom_fields);
+		
+		if(!empty($context_id)) {
+			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed', $context_id);
+			if(isset($custom_field_values[$context_id]))
+				$tpl->assign('custom_field_values', $custom_field_values[$context_id]);
+		}
+		
+		// Comments
+		$comments = DAO_Comment::getByContext('cerberusweb.contexts.feed', $context_id);
+		$last_comment = array_shift($comments);
+		unset($comments);
+		$tpl->assign('last_comment', $last_comment);
+		
+		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/feed/peek.tpl');
+	}
+	
+	function importGetKeys() {
+		// [TODO] Translate
+	
+		$keys = array(
+			'name' => array(
+				'label' => 'Name',
+				'type' => Model_CustomField::TYPE_SINGLE_LINE,
+				'param' => SearchFields_Feed::NAME,
+				'required' => true,
+			),
+			'url' => array(
+				'label' => 'URL',
+				'type' => Model_CustomField::TYPE_SINGLE_LINE,
+				'param' => SearchFields_Feed::URL,
+				'required' => true,
+				'force_match' => true,
+			),
+		);
+	
+		$cfields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+	
+		foreach($cfields as $cfield_id => $cfield) {
+			$keys['cf_' . $cfield_id] = array(
+					'label' => $cfield->name,
+					'type' => $cfield->type,
+					'param' => 'cf_' . $cfield_id,
+			);
+		}
+	
+		DevblocksPlatform::sortObjects($keys, '[label]', true);
+	
+		return $keys;
+	}
+	
+	function importKeyValue($key, $value) {
+		switch($key) {
+		}
+	
+		return $value;
+	}
+	
+	function importSaveObject(array $fields, array $custom_fields, array $meta) {
+		// If new...
+		if(!isset($meta['object_id']) || empty($meta['object_id'])) {
+			// Make sure we have a name
+			if(!isset($fields[DAO_Feed::NAME])) {
+				$fields[DAO_Feed::NAME] = 'New ' . $this->manifest->name;
+			}
+	
+			// Create
+			$meta['object_id'] = DAO_Feed::create($fields);
+	
+		} else {
+			// Update
+			DAO_Feed::update($meta['object_id'], $fields);
+		}
+	
+		// Custom fields
+		if(!empty($custom_fields) && !empty($meta['object_id'])) {
+			DAO_CustomFieldValue::formatAndSetFieldValues($this->manifest->id, $meta['object_id'], $custom_fields, false, true, true); //$is_blank_unset (4th)
+		}
+	}	
 };
