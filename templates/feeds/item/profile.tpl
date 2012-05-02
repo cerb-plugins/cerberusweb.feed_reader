@@ -1,9 +1,16 @@
 {$page_context = 'cerberusweb.contexts.feed.item'}
 {$page_context_id = $item->id}
 
-{include file="devblocks:cerberusweb.feed_reader::feeds/item/display/submenu.tpl"}
+<div style="float:left;">
+	<h1>{$item->title}</h1>
+</div>
 
-<h1>{$item->title}</h1>
+<div style="float:right;">
+	{$ctx = Extension_DevblocksContext::get($page_context)}
+	{include file="devblocks:cerberusweb.core::search/quick_search.tpl" view=$ctx->getSearchView() return_url="{devblocks_url}c=search&context={$ctx->manifest->params.alias}{/devblocks_url}" reset=true}
+</div>
+
+<div style="clear:both;"></div>
 
 <fieldset class="properties">
 	<legend>{'feeds.item'|devblocks_translate|capitalize}</legend>
@@ -69,11 +76,11 @@
 
 <div id="feedItemTabs">
 	<ul>
-		{$tabs = [activity,notes,links]}
+		{$tabs = [activity,comments,links]}
 		
 		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabActivityLog&scope=target&point={$point}&context=cerberusweb.contexts.feed.item&context_id={$page_context_id}{/devblocks_url}">{'common.activity_log'|devblocks_translate|capitalize}</a></li>
-		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextComments&context=cerberusweb.contexts.feed.item&id={$page_context_id}{/devblocks_url}">{$translate->_('common.comments')|capitalize}</a></li>		
-		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextLinks&context=cerberusweb.contexts.feed.item&id={$page_context_id}{/devblocks_url}">{$translate->_('common.links')}</a></li>		
+		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextComments&point={$point}&context=cerberusweb.contexts.feed.item&id={$page_context_id}{/devblocks_url}">{$translate->_('common.comments')|capitalize}</a></li>		
+		<li><a href="{devblocks_url}ajax.php?c=internal&a=showTabContextLinks&point={$point}&context=cerberusweb.contexts.feed.item&id={$page_context_id}{/devblocks_url}">{$translate->_('common.links')}</a></li>		
 
 		{foreach from=$tab_manifests item=tab_manifest}
 			{$tabs[] = $tab_manifest->params.uri}
@@ -83,20 +90,20 @@
 </div> 
 <br>
 
-{$tab_selected_idx=0}
+{$selected_tab_idx=0}
 {foreach from=$tabs item=tab_label name=tabs}
-	{if $tab_label==$tab_selected}{$tab_selected_idx = $smarty.foreach.tabs.index}{/if}
+	{if $tab_label==$selected_tab}{$selected_tab_idx = $smarty.foreach.tabs.index}{/if}
 {/foreach}
 
 <script type="text/javascript">
 	$(function() {
-		var tabs = $("#feedItemTabs").tabs( { selected:{$tab_selected_idx} } );
+		var tabs = $("#feedItemTabs").tabs( { selected:{$selected_tab_idx} } );
 		
 		$('#btnDisplayFeedItemEdit').bind('click', function() {
-			$popup = genericAjaxPopup('peek','c=feeds&a=showFeedItemPopup&id={$page_context_id}',null,false,'550');
+			$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'550');
 			$popup.one('feeditem_save', function(event) {
 				event.stopPropagation();
-				document.location.href = '{devblocks_url}c=feeds&i=item&id={$page_context_id}{/devblocks_url}';
+				document.location.href = '{devblocks_url}c=profiles&type=feed_item&id={$page_context_id}{/devblocks_url}';
 			});
 		});
 		

@@ -65,8 +65,8 @@
 			<td colspan="{$smarty.foreach.headers.total}">
 				<input type="checkbox" name="row_id[]" value="{$result.fi_id}" style="display:none;">
 				{if $result.fi_is_closed}<span class="cerb-sprite2 sprite-tick-circle-frame-gray"></span>{/if}
-				<a href="{devblocks_url}c=feeds&m=item&id={$result.fi_id}{/devblocks_url}" class="subject">{$result.fi_title}</a>
-				<button type="button" class="peek" style="visibility:hidden;padding:1px;margin:0px 5px;" onclick="genericAjaxPopup('peek','c=feeds&a=showFeedItemPopup&id={$result.fi_id}&view_id={$view->id}',null,false,'550');"><span class="cerb-sprite2 sprite-document-search-result" style="margin-left:2px" title="{$translate->_('views.peek')}"></span></button> 
+				<a href="{devblocks_url}c=profiles&type=feed_item&id={$result.fi_id}-{$result.fi_title|devblocks_permalink}{/devblocks_url}" class="subject">{$result.fi_title}</a>
+				<button type="button" class="peek" style="visibility:hidden;padding:1px;margin:0px 5px;" onclick="genericAjaxPopup('peek','c=internal&a=showPeekPopup&context=cerberusweb.contexts.feed.item&context_id={$result.fi_id}&view_id={$view->id}',null,false,'550');"><span class="cerb-sprite2 sprite-document-search-result" style="margin-left:2px" title="{$translate->_('views.peek')}"></span></button> 
 			</td>
 		</tr>
 		<tr class="{$tableRowClass}">

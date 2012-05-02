@@ -762,21 +762,33 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 	}			
 };
 
-class Context_FeedItem extends Extension_DevblocksContext {
+class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek {
 	function getRandom() {
 		return DAO_FeedItem::random();
 	}
 	
+	function profileGetUrl($context_id) {
+		if(empty($context_id))
+			return '';
+	
+		$url_writer = DevblocksPlatform::getUrlService();
+		$url = $url_writer->writeNoProxy('c=profiles&type=feed_item&id='.$context_id, true);
+		return $url;
+	}
+	
 	function getMeta($context_id) {
 		$item = DAO_FeedItem::get($context_id);
-		$url_writer = DevblocksPlatform::getUrlService();
 		
+		$url = $this->profileGetUrl($context_id);
 		$friendly = DevblocksPlatform::strToPermalink($item->title);
+		
+		if(!empty($friendly))
+			$url .= '-' . $friendly;
 		
 		return array(
 			'id' => $item->id,
 			'name' => $item->title,
-			'permalink' => $url_writer->writeNoProxy(sprintf("c=feeds&i=item&id=%d-%s",$context_id, $friendly), true),
+			'permalink' => $url,
 		);
 	}
 	
@@ -829,7 +841,7 @@ class Context_FeedItem extends Extension_DevblocksContext {
 
 			// URL
 			$url_writer = DevblocksPlatform::getUrlService();
-			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=feeds&i=item&id=%d-%s",$item->id, DevblocksPlatform::strToPermalink($item->title)), true);
+			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=profiles&type=feed_item&id=%d-%s",$item->id, DevblocksPlatform::strToPermalink($item->title)), true);
 			
 			// Feed
 			@$feed_id = $item->feed_id;
@@ -887,22 +899,18 @@ class Context_FeedItem extends Extension_DevblocksContext {
 		return $values;
 	}	
 	
-	function getChooserView() {
+	function getChooserView($view_id=null) {
 		$active_worker = CerberusApplication::getActiveWorker();
+
+		if(empty($view_id))
+			$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
 		
 		// View
-		$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
 		$defaults = new C4_AbstractViewModel();
 		$defaults->id = $view_id;
 		$defaults->is_ephemeral = true;
 		$defaults->class_name = $this->getViewClass();
 		$view = C4_AbstractViewLoader::getView($view_id, $defaults);
-//		$view->name = 'Headlines';
-//		$view->view_columns = array(
-//			SearchFields_CallEntry::IS_OUTGOING,
-//			SearchFields_CallEntry::PHONE,
-//			SearchFields_CallEntry::UPDATED_DATE,
-//		);
 		$view->addParams(array(
 			SearchFields_FeedItem::IS_CLOSED => new DevblocksSearchCriteria(SearchFields_FeedItem::IS_CLOSED,'=',0),
 		), true);
@@ -939,5 +947,31 @@ class Context_FeedItem extends Extension_DevblocksContext {
 		$view->renderTemplate = 'context';
 		C4_AbstractViewLoader::setView($view_id, $view);
 		return $view;
+	}
+	
+	function renderPeekPopup($context_id=0, $view_id='') {
+		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl->assign('view_id', $view_id);
+		
+		if(!empty($context_id) && null != ($item = DAO_FeedItem::get($context_id))) {
+			$tpl->assign('model', $item);
+		}
+		
+		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed.item');
+		$tpl->assign('custom_fields', $custom_fields);
+		
+		if(!empty($context_id)) {
+			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed.item', $context_id);
+			if(isset($custom_field_values[$context_id]))
+				$tpl->assign('custom_field_values', $custom_field_values[$context_id]);
+		}
+		
+		// Comments
+		$comments = DAO_Comment::getByContext('cerberusweb.contexts.feed.item', $context_id);
+		$last_comment = array_shift($comments);
+		unset($comments);
+		$tpl->assign('last_comment', $last_comment);
+		
+		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/peek.tpl');
 	}
 };

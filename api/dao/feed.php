@@ -476,19 +476,34 @@ class View_Feed extends C4_AbstractView {
 	}			
 };
 
-class Context_Feed extends Extension_DevblocksContext {
+class Context_Feed extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
 	function getRandom() {
 		return DAO_Feed::random();
 	}
 	
+	function profileGetUrl($context_id) {
+		if(empty($context_id))
+			return '';
+	
+		$url_writer = DevblocksPlatform::getUrlService();
+		$url = $url_writer->writeNoProxy('c=profiles&type=feed&id='.$context_id, true);
+		return $url;
+	}
+	
 	function getMeta($context_id) {
 		$feed = DAO_Feed::get($context_id);
-		$url_writer = DevblocksPlatform::getUrlService();
+		
+		$url = $this->profileGetUrl($context_id); 
+		
+		$friendly = DevblocksPlatform::strToPermalink($feed->name);
+		
+		if(!empty($friendly))
+			$url .= '-' . $friendly;
 		
 		return array(
 			'id' => $feed->id,
 			'name' => $feed->name,
-			'permalink' => null, //$url_writer->writeNoProxy('c=feeds&i=item&id='.$context_id, true),
+			'permalink' => $url,
 		);
 	}
 	
@@ -571,12 +586,14 @@ class Context_Feed extends Extension_DevblocksContext {
 		
 		return $values;
 	}	
-	
-	function getChooserView() {
+
+	function getChooserView($view_id=null) {
 		$active_worker = CerberusApplication::getActiveWorker();
+
+		if(empty($view_id))
+			$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
 		
 		// View
-		$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
 		$defaults = new C4_AbstractViewModel();
 		$defaults->id = $view_id;
 		$defaults->is_ephemeral = true;

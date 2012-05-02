@@ -32,7 +32,7 @@
 	});
 	
 	$('#frmExploreFeedItem BUTTON.edit').click(function() {
-		$popup = genericAjaxPopup('peek','c=feeds&a=showFeedItemPopup&id={$model->id}',null,true,'550');
+		$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context=cerberusweb.contexts.feed.item&context_id={$model->id}',null,true,'550');
 		$popup.one('feeditem_save', function(event) {
 			event.stopPropagation();
 			document.location.reload();

@@ -14,9 +14,6 @@
 		<tu tuid='feeds.item'>
 			<tuv xml:lang="en_US"><seg>Feed Item</seg></tuv>
 		</tu>
-		<tu tuid='feeds.manage'>
-			<tuv xml:lang="en_US"><seg>Manage Feeds</seg></tuv>
-		</tu>
 
 		<!-- Feed_Item -->
 		

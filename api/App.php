@@ -44,56 +44,11 @@ class FeedsCron extends CerberusCronPageExtension {
 	}
 	
 	public function configure($instance) {
-//		$tpl = DevblocksPlatform::getTemplateService();
-//		$tpl->cache_lifetime = "0";
-//		$tpl->display('devblocks:example.cron::cron/config.tpl');
 	}
 	
 	public function saveConfigurationAction() {
-//		@$example_waitdays = DevblocksPlatform::importGPC($_POST['example_waitdays'], 'integer');
-//		$this->setParam('example_waitdays', $example_waitdays);
 	}
 };
-endif;
-
-if (class_exists('Extension_ActivityTab')):
-class FeedsActivityTab extends Extension_ActivityTab {
-	const VIEW_ACTIVITY_FEEDS = 'activity_feeds';
-	
-	function showTab() {
-		$tpl = DevblocksPlatform::getTemplateService();
-		
-		$visit = CerberusApplication::getVisit();
-		$translate = DevblocksPlatform::getTranslationService();
-		$active_worker = CerberusApplication::getActiveWorker();
-
-		// Read original request
-		@$request_path = DevblocksPlatform::importGPC($_REQUEST['request'],'string','');
-		@$stack =  explode('/', $request_path);
-		@array_shift($stack); // activity
-		@array_shift($stack); // feeds
-		
-		// Index
-		$defaults = new C4_AbstractViewModel();
-		$defaults->class_name = 'View_FeedItem';
-		$defaults->id = self::VIEW_ACTIVITY_FEEDS;
-		$defaults->renderSortBy = SearchFields_FeedItem::CREATED_DATE;
-		$defaults->renderSortAsc = 0;
-		$defaults->paramsDefault = array(
-			SearchFields_FeedItem::IS_CLOSED => new DevblocksSearchCriteria(SearchFields_FeedItem::IS_CLOSED,'=',0),
-		);
-		
-		$view = C4_AbstractViewLoader::getView(self::VIEW_ACTIVITY_FEEDS, $defaults);
-		C4_AbstractViewLoader::setView($view->id, $view);
-		
-		//$quick_search_type = $visit->get('crm.opps.quick_search_type');
-		//$tpl->assign('quick_search_type', $quick_search_type);
-		
-		$tpl->assign('view', $view);
-		
-		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/activity_tab/index.tpl');		
-	}
-}
 endif;
 
 class Page_Feeds extends CerberusPageExtension {
@@ -105,136 +60,63 @@ class Page_Feeds extends CerberusPageExtension {
 	}
 	
 	function render() {
-		$tpl = DevblocksPlatform::getTemplateService();
-		$visit = CerberusApplication::getVisit();
-		$translate = DevblocksPlatform::getTranslationService();
-		$response = DevblocksPlatform::getHttpResponse();
-		$active_worker = CerberusApplication::getActiveWorker();
-
-		// Remember the last tab/URL
-		if(null == ($selected_tab = @$response->path[1])) {
-			//$selected_tab = $visit->get('cerberusweb.feed_reader.tab', '');
-		}
-		$tpl->assign('selected_tab', $selected_tab);
-
-		// Path
-		$stack = $response->path;
-		@array_shift($stack); // feeds
-		@$module = array_shift($stack); // item
-		
-		switch($module) {
-			case 'item':
-				@$id = intval(array_shift($stack)); // id
-
-				if(null != ($item = DAO_FeedItem::get($id)))
-					$tpl->assign('item', $item);
-
-				$tab_manifests = DevblocksPlatform::getExtensions('cerberusweb.feeds.item.tab', false);
-				DevblocksPlatform::sortObjects($tab_manifests, 'name');
-				$tpl->assign('tab_manifests', $tab_manifests);
-				
-				// Custom fields
-				
-				$custom_fields = DAO_CustomField::getAll();
-				$tpl->assign('custom_fields', $custom_fields);
-				
-				// Properties
-				
-				$properties = array();
-
-				if(!empty($item->feed_id)) {
-					if(null != ($feed = DAO_Feed::get($item->feed_id))) {
-						$properties['feed'] = array(
-							'label' => ucfirst($translate->_('dao.feed_item.feed_id')),
-							'type' => null,
-							'feed' => $feed,
-						);
-					}
-				}
-				
-				$properties['is_closed'] = array(
-					'label' => ucfirst($translate->_('dao.feed_item.is_closed')),
-					'type' => Model_CustomField::TYPE_CHECKBOX,
-					'value' => $item->is_closed,
-				);
-				
-				$properties['created_date'] = array(
-					'label' => ucfirst($translate->_('common.created')),
-					'type' => Model_CustomField::TYPE_DATE,
-					'value' => $item->created_date,
-				);
-				
-				@$values = array_shift(DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed.item', $item->id)) or array();
-		
-				foreach($custom_fields as $cf_id => $cfield) {
-					if(!isset($values[$cf_id]))
-						continue;
-						
-					$properties['cf_' . $cf_id] = array(
-						'label' => $cfield->name,
-						'type' => $cfield->type,
-						'value' => $values[$cf_id],
-					);
-				}
-				
-				$tpl->assign('properties', $properties);				
-				
-				// Macros
-				$macros = DAO_TriggerEvent::getByOwner(CerberusContexts::CONTEXT_WORKER, $active_worker->id, 'event.macro.feeditem');
-				$tpl->assign('macros', $macros);
-				
-				$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/display/index.tpl');
-				break;
-				
-//			default:
-//				$tab_manifests = DevblocksPlatform::getExtensions('cerberusweb.feeds.tab', false);
-//				DevblocksPlatform::sortObjects($tab_manifests, 'name');
-//				$tpl->assign('tab_manifests', $tab_manifests);
-//				
-//				$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/page/index.tpl');
-//				break;
-		}		
 	}
 	
-	// Ajax
-//	function showTabAction() {
-//		@$ext_id = DevblocksPlatform::importGPC($_REQUEST['ext_id'],'string','');
-//		
-//		if(null != ($tab_mft = DevblocksPlatform::getExtension($ext_id)) 
-//			&& null != ($inst = $tab_mft->createInstance()) 
-//			&& $inst instanceof Extension_RssTab) {
-//			$inst->showTab();
-//		}
-//	}
-		
-	function showFeedItemPopupAction() {
-		@$id = DevblocksPlatform::importGPC($_REQUEST['id'], 'integer', 0);
+	function saveFeedPopupAction() {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'], 'string', '');
-
-		$tpl = DevblocksPlatform::getTemplateService();
-		$tpl->assign('view_id', $view_id);
-		
-		if(!empty($id) && null != ($item = DAO_FeedItem::get($id))) {
-			$tpl->assign('model', $item);
+	
+		@$id = DevblocksPlatform::importGPC($_REQUEST['id'], 'integer', 0);
+		@$name = DevblocksPlatform::importGPC($_REQUEST['name'], 'string', '');
+		@$url = DevblocksPlatform::importGPC($_REQUEST['url'], 'string', '');
+		@$comment = DevblocksPlatform::importGPC($_REQUEST['comment'], 'string', '');
+		@$do_delete = DevblocksPlatform::importGPC($_REQUEST['do_delete'], 'string', '');
+	
+		$active_worker = CerberusApplication::getActiveWorker();
+	
+		if(!empty($id) && !empty($do_delete)) { // Delete
+			DAO_Feed::delete($id);
+				
+		} else {
+			$fields = array(
+				DAO_Feed::NAME => $name,
+				DAO_Feed::URL => $url,
+			);
+			
+			if(empty($id)) { // New
+				$id = DAO_Feed::create($fields);
+	
+				@$is_watcher = DevblocksPlatform::importGPC($_REQUEST['is_watcher'],'integer',0);
+				if($is_watcher)
+					CerberusContexts::addWatchers('cerberusweb.contexts.feed', $id, $active_worker->id);
+	
+			} else { // Edit
+				DAO_Feed::update($id, $fields);
+			}
+	
+			// If we're adding a comment
+			if(!empty($comment)) {
+				@$also_notify_worker_ids = DevblocksPlatform::importGPC($_REQUEST['notify_worker_ids'],'array',array());
+	
+				$fields = array(
+						DAO_Comment::CREATED => time(),
+						DAO_Comment::CONTEXT => 'cerberusweb.contexts.feed',
+						DAO_Comment::CONTEXT_ID => $id,
+						DAO_Comment::COMMENT => $comment,
+						DAO_Comment::ADDRESS_ID => $active_worker->getAddress()->id,
+				);
+				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
+			}
+				
+			// Custom fields
+			@$field_ids = DevblocksPlatform::importGPC($_REQUEST['field_ids'], 'array', array());
+			DAO_CustomFieldValue::handleFormPost('cerberusweb.contexts.feed', $id, $field_ids);
 		}
-		
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed.item');
-		$tpl->assign('custom_fields', $custom_fields);
-		
-		if(!empty($id)) {
-			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed.item', $id);
-			if(isset($custom_field_values[$id]))
-				$tpl->assign('custom_field_values', $custom_field_values[$id]);
+	
+		// Reload view (if linked)
+		if(!empty($view_id) && null != ($view = C4_AbstractViewLoader::getView($view_id))) {
+			$view->render();
 		}
-
-		// Comments
-		$comments = DAO_Comment::getByContext('cerberusweb.contexts.feed.item', $id);
-		$last_comment = array_shift($comments);
-		unset($comments);
-		$tpl->assign('last_comment', $last_comment);
-		
-		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/peek.tpl');
-	}
+	}	
 	
 	function saveFeedItemPopupAction() {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'], 'string', '');
@@ -444,7 +326,7 @@ class Page_Feeds extends CerberusPageExtension {
 				$model->pos = $pos++;
 				$model->params = array(
 					'id' => $id,
-					'url' => $url_writer->writeNoProxy(sprintf("c=feeds&i=item&id=%d", $row[SearchFields_FeedItem::ID]), true),
+					'url' => $url_writer->writeNoProxy(sprintf("c=profiles&type=feed_item&id=%d", $row[SearchFields_FeedItem::ID]), true),
 				);
 				$models[] = $model; 
 			}
@@ -539,60 +421,6 @@ class Page_Feeds extends CerberusPageExtension {
 		DAO_FeedItem::update($id, array(
 			DAO_FeedItem::IS_CLOSED => ($is_closed) ? 1 : 0,
 		));
-	}
-	
-	function showFeedsManagerPopupAction() {
-		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'], 'string', '');
-
-		$tpl = DevblocksPlatform::getTemplateService();
-		$tpl->assign('view_id', $view_id);
-		
-		// Feeds
-		$feeds = DAO_Feed::getWhere();
-		$tpl->assign('feeds', $feeds);
-		
-		// Template		
-		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/feed/manager_popup.tpl');		
-	}
-	
-	function saveFeedsManagerPopupAction() {
-		@$feed_ids = DevblocksPlatform::importGPC($_REQUEST['feed_id'], 'array', array());
-		@$feed_names = DevblocksPlatform::importGPC($_REQUEST['feed_name'], 'array', array());
-		@$feed_urls = DevblocksPlatform::importGPC($_REQUEST['feed_url'], 'array', array());
-		
-		// Compare to existing feeds
-		$feeds = DAO_Feed::getWhere();
-
-		// Do deletes
-		$deleted_ids = array_diff(array_keys($feeds), $feed_ids);
-		if(is_array($deleted_ids))
-			DAO_Feed::delete($deleted_ids);
-
-		// Do we need to update anything?
-		if(is_array($feed_ids))
-		foreach($feed_ids as $idx => $feed_id) {
-			if(empty($feed_names[$idx]) || empty($feed_urls[$idx]))
-				continue;
-			
-			if(empty($feed_id) || !isset($feeds[$feed_id])) { // Create
-				$fields = array(
-					DAO_Feed::NAME => $feed_names[$idx],
-					DAO_Feed::URL => $feed_urls[$idx],
-				);
-				$feed_id = DAO_Feed::create($fields);
-				
-				// [TODO] Synchronize new feeds
-				
-			} else { // Update
-				if(0 != strcmp(md5($feed->name.$feed->url), md5($feed_names[$idx].$feed_urls[$idx]))) {
-					$fields = array(
-						DAO_Feed::NAME => $feed_names[$idx],
-						DAO_Feed::URL => $feed_urls[$idx],
-					);
-					DAO_Feed::update($feed_id, $fields);
-				}
-			}
-		}
 	}
 };
 
