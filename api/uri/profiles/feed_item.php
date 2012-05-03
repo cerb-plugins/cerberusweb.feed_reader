@@ -94,6 +94,11 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		$macros = DAO_TriggerEvent::getByOwner(CerberusContexts::CONTEXT_WORKER, $active_worker->id, 'event.macro.feeditem');
 		$tpl->assign('macros', $macros);
 
+		// Tabs
+		$tab_manifests = Extension_ContextProfileTab::getExtensions(false, 'cerberusweb.contexts.feed.item');
+		$tpl->assign('tab_manifests', $tab_manifests);
+		
+		// Template
 		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/profile.tpl');
 	}
 };

@@ -1,5 +1,5 @@
 <?php
-if (class_exists('Extension_ActivityTab')):
+if (class_exists('CerberusCronPageExtension')):
 class FeedsCron extends CerberusCronPageExtension {
 	public function run() {
 		$logger = DevblocksPlatform::getConsoleLog();
@@ -308,7 +308,7 @@ class Page_Feeds extends CerberusPageExtension {
 					'created' => time(),
 					//'worker_id' => $active_worker->id,
 					'total' => $total,
-					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=activity&tab=tasks', true),
+					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=search&type=feed_item', true),
 //					'toolbar_extension_id' => 'cerberusweb.explorer.toolbar.',
 				);
 				$models[] = $model; 
@@ -378,7 +378,7 @@ class Page_Feeds extends CerberusPageExtension {
 					'created' => time(),
 //					'worker_id' => $active_worker->id,
 					'total' => $total,
-					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=activity&tab=feeds', true),
+					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=search&type=feed', true),
 					'toolbar_extension_id' => 'cerberusweb.feed_reader.item.explore.toolbar',
 				);
 				$models[] = $model; 
