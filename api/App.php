@@ -31,7 +31,7 @@ class FeedsCron extends CerberusCronPageExtension {
 					DAO_FeedItem::FEED_ID => $feed_id,
 					DAO_FeedItem::CREATED_DATE => $item['date'],
 					DAO_FeedItem::GUID => $guid,
-					DAO_FeedItem::TITLE => $item['title'],
+					DAO_FeedItem::TITLE => DevblocksPlatform::stripHTML($item['title']),
 					DAO_FeedItem::URL => $item['link'],
 				);
 				$item_id = DAO_FeedItem::create($fields);
