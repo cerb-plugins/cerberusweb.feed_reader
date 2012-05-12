@@ -9,7 +9,7 @@
 	
 	<button type="button" class="edit"><span class="cerb-sprite sprite-document_edit"></span> {'common.edit'|devblocks_translate|capitalize}</button>
 	
-	<button type="button" onclick="genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={CerberusContexts::CONTEXT_TASK}&context_id=0&context={'cerberusweb.contexts.feed.item'}&context_id={$model->id}',null,false,'500');"><span class="cerb-sprite sprite-gear"></span> {'tasks.add'|devblocks_translate|capitalize}</button>
+	<button type="button" onclick="genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={CerberusContexts::CONTEXT_TASK}&context_id=0&context={'cerberusweb.contexts.feed.item'}&context_id={$model->id}',null,false,'500');"><span class="cerb-sprite2 sprite-gear"></span> {'tasks.add'|devblocks_translate|capitalize}</button>
 	
 	{* [TODO] HACK!! *}
 	{if DevblocksPlatform::isPluginEnabled('cerberusweb.feedback')}
