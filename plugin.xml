@@ -2,16 +2,16 @@
 <plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.devblocks.com/schema/plugin.xsd">
 	<id>cerberusweb.feed_reader</id>
 	<name>Collaborative Feed Reader</name>
-	<description>Share monitoring duties on RSS/Atom feeds: moderate blog comments, audit wiki changes, read new forum posts, track vendor announcements, etc.</description>
+	<description>This plugin adds new records for Feeds and Feed Items.  These can be used to share monitoring duties on RSS/Atom feeds: moderate blog comments, audit wiki changes, read new forum posts, track vendor announcements, etc.</description>
 	<author>WebGroup Media, LLC.</author>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<link>https://github.com/cerb5-plugins/cerberusweb.feed_reader</link>
 	<image>plugin.png</image>
 	
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="5.8" max="5.8.99" />
+		<app_version min="6.0" max="6.0.99" />
 	</requires>
 	
 	<!-- Plugin Dependencies -->
