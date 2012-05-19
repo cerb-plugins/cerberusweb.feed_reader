@@ -477,7 +477,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 				foreach($feeds as $feed_id => $feed) { /* @var $feed Model_Feed */
 					$label_map[$feed_id] = $feed->name;
 				}
-				$counts = $this->_getSubtotalCountForStringColumn('DAO_FeedItem', $column, $label_map, 'in', 'feed_id[]');
+				$counts = $this->_getSubtotalCountForStringColumn('DAO_FeedItem', $column, $label_map, 'in', 'options[]');
 				break;
 
 			case SearchFields_FeedItem::IS_CLOSED:
