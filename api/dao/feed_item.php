@@ -445,6 +445,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 					break;
 					
 				// Virtuals
+				case SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK:
 				case SearchFields_FeedItem::VIRTUAL_WATCHERS:
 					$pass = true;
 					break;
@@ -484,6 +485,9 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 				$counts = $this->_getSubtotalCountForBooleanColumn('DAO_FeedItem', $column);
 				break;
 				
+			case SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK:
+				$counts = $this->_getSubtotalCountForContextLinkColumn('DAO_FeedItem', 'cerberusweb.contexts.feed.item', $column);
+				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
 				$counts = $this->_getSubtotalCountForWatcherColumn('DAO_FeedItem', $column);
