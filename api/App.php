@@ -270,6 +270,25 @@ class Page_Feeds extends CerberusPageExtension {
 		return;
 	}	
 	
+	function viewFeedItemCloseAction() {
+		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
+		@$ids = DevblocksPlatform::sanitizeArray(
+			DevblocksPlatform::importGPC($_REQUEST['row_id'],'array',array()),
+			'integer',
+			array('nonzero','unique')
+		);
+		
+		if(null == ($view = C4_AbstractViewLoader::getView($view_id)))
+			return;
+		
+		DAO_FeedItem::update($ids, array(
+			DAO_FeedItem::IS_CLOSED => 1,
+		));
+		
+		$view->render();
+		return;		
+	}
+	
 	function viewFeedItemExploreAction() {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
 		

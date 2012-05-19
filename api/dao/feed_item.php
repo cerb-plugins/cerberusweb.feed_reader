@@ -938,6 +938,9 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$view->addParams(array(
 			SearchFields_FeedItem::IS_CLOSED => new DevblocksSearchCriteria(SearchFields_FeedItem::IS_CLOSED,'=',0),
 		), true);
+		$view->addParamsDefault(array(
+			SearchFields_FeedItem::IS_CLOSED => new DevblocksSearchCriteria(SearchFields_FeedItem::IS_CLOSED,'=',0),
+		), true);
 		$view->renderSortBy = SearchFields_FeedItem::CREATED_DATE;
 		$view->renderSortAsc = false;
 		$view->renderLimit = 10;
