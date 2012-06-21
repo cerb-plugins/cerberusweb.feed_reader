@@ -43,7 +43,7 @@
 		</span>		
 		
 		<!-- Macros -->
-		{devblocks_url assign=return_url full=true}c=feeds&i=item&id={$page_context_id}-{$item->title|devblocks_permalink}{/devblocks_url}
+		{devblocks_url assign=return_url full=true}c=profiles&alias=feed_item&id={$page_context_id}-{$item->title|devblocks_permalink}{/devblocks_url}
 		{include file="devblocks:cerberusweb.core::internal/macros/display/button.tpl" context=$page_context context_id=$page_context_id macros=$macros return_url=$return_url}		
 		
 		<!-- Edit -->
