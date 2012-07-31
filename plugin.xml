@@ -4,7 +4,7 @@
 	<name>Collaborative Feed Reader</name>
 	<description>This plugin adds new records for Feeds and Feed Items.  These can be used to share monitoring duties on RSS/Atom feeds: moderate blog comments, audit wiki changes, read new forum posts, track vendor announcements, etc.</description>
 	<author>WebGroup Media, LLC.</author>
-	<version>1.0.8</version>
+	<version>1.0.9</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.feed_reader.git</link>
 	<image>plugin.png</image>
 	
@@ -85,6 +85,7 @@
 			</class>
 			<params>
 				<param key="alias" value="feed" />
+				<param key="dao_class" value="DAO_Feed" />
 				<param key="view_class" value="View_Feed" />
 				<param key="options">
 					<value>
@@ -107,6 +108,7 @@
 			</class>
 			<params>
 				<param key="alias" value="feed_item" />
+				<param key="dao_class" value="DAO_FeedItem" />
 				<param key="view_class" value="View_FeedItem" />
 				<param key="options">
 					<value>
