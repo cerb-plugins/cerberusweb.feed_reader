@@ -1,6 +1,7 @@
 <form action="{devblocks_url}{/devblocks_url}" method="post" id="frmFeedPopup">
 <input type="hidden" name="c" value="feeds">
 <input type="hidden" name="a" value="saveFeedPopup">
+<input type="hidden" name="view_id" value="{$view_id}">
 {if !empty($model) && !empty($model->id)}<input type="hidden" name="id" value="{$model->id}">{/if}
 <input type="hidden" name="do_delete" value="0">
 

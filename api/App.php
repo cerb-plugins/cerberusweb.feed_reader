@@ -89,6 +89,11 @@ class Page_Feeds extends CerberusPageExtension {
 				if($is_watcher)
 					CerberusContexts::addWatchers('cerberusweb.contexts.feed', $id, $active_worker->id);
 	
+					// View marquee
+					if(!empty($id) && !empty($view_id)) {
+						C4_AbstractView::setMarqueeContextCreated($view_id, 'cerberusweb.contexts.feed', $id);
+					}
+				
 			} else { // Edit
 				DAO_Feed::update($id, $fields);
 			}
@@ -110,11 +115,6 @@ class Page_Feeds extends CerberusPageExtension {
 			// Custom fields
 			@$field_ids = DevblocksPlatform::importGPC($_REQUEST['field_ids'], 'array', array());
 			DAO_CustomFieldValue::handleFormPost('cerberusweb.contexts.feed', $id, $field_ids);
-		}
-	
-		// Reload view (if linked)
-		if(!empty($view_id) && null != ($view = C4_AbstractViewLoader::getView($view_id))) {
-			$view->render();
 		}
 	}	
 	
@@ -167,11 +167,6 @@ class Page_Feeds extends CerberusPageExtension {
 			// Custom fields
 			@$field_ids = DevblocksPlatform::importGPC($_REQUEST['field_ids'], 'array', array());
 			DAO_CustomFieldValue::handleFormPost('cerberusweb.contexts.feed.item', $id, $field_ids);
-		}
-		
-		// Reload view (if linked)
-		if(!empty($view_id) && null != ($view = C4_AbstractViewLoader::getView($view_id))) {
-			$view->render();
 		}
 	}
 	
