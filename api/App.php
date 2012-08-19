@@ -85,14 +85,15 @@ class Page_Feeds extends CerberusPageExtension {
 			if(empty($id)) { // New
 				$id = DAO_Feed::create($fields);
 	
-				@$is_watcher = DevblocksPlatform::importGPC($_REQUEST['is_watcher'],'integer',0);
-				if($is_watcher)
-					CerberusContexts::addWatchers('cerberusweb.contexts.feed', $id, $active_worker->id);
-	
-					// View marquee
-					if(!empty($id) && !empty($view_id)) {
-						C4_AbstractView::setMarqueeContextCreated($view_id, 'cerberusweb.contexts.feed', $id);
-					}
+				// Watchers
+				@$add_watcher_ids = DevblocksPlatform::sanitizeArray(DevblocksPlatform::importGPC($_REQUEST['add_watcher_ids'],'array',array()),'integer',array('unique','nonzero'));
+				if(!empty($add_watcher_ids))
+					CerberusContexts::addWatchers('cerberusweb.contexts.feed', $id, $add_watcher_ids);
+				
+				// View marquee
+				if(!empty($id) && !empty($view_id)) {
+					C4_AbstractView::setMarqueeContextCreated($view_id, 'cerberusweb.contexts.feed', $id);
+				}
 				
 			} else { // Edit
 				DAO_Feed::update($id, $fields);
@@ -137,10 +138,6 @@ class Page_Feeds extends CerberusPageExtension {
 					DAO_FeedItem::IS_CLOSED => $is_closed,
 				);
 				$id = DAO_FeedItem::create($fields);
-				
-				@$is_watcher = DevblocksPlatform::importGPC($_REQUEST['is_watcher'],'integer',0);
-				if($is_watcher)
-					CerberusContexts::addWatchers('cerberusweb.contexts.feed.item', $id, $active_worker->id);
 				
 			} else { // Edit
 				$fields = array(

@@ -34,9 +34,7 @@
 		<tr>
 			<td width="0%" nowrap="nowrap" valign="middle" align="right">{$translate->_('common.watchers')|capitalize}: </td>
 			<td width="100%">
-				{if empty($model->id)}
-					<label><input type="checkbox" name="is_watcher" value="1"> {'common.watchers.add_me'|devblocks_translate}</label>
-				{else}
+				{if !empty($model->id)}
 					{$object_watchers = DAO_ContextLink::getContextLinks('cerberusweb.contexts.feed.item', array($model->id), CerberusContexts::CONTEXT_WORKER)}
 					{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context='cerberusweb.contexts.feed.item' context_id=$model->id full=true}
 				{/if}
