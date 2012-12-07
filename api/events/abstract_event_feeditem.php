@@ -247,7 +247,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				'create_task' => array('label' =>'Create a task'),
 				'create_ticket' => array('label' =>'Create a ticket'),
 				'schedule_behavior' => array('label' => 'Schedule behavior'),
-				'set_item_links' => array('label' => 'Set links on item'),
+				'set_links' => array('label' => 'Set links'),
 				'unschedule_behavior' => array('label' => 'Unschedule behavior'),
 			)
 			+ DevblocksEventHelper::getActionCustomFields('cerberusweb.contexts.feed.item')
@@ -291,8 +291,8 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				$dates = array();
 				$conditions = $this->getConditions($trigger);
 				foreach($conditions as $key => $data) {
-					if($data['type'] == Model_CustomField::TYPE_DATE)
-					$dates[$key] = $data['label'];
+					if(isset($data['type']) && $data['type'] == Model_CustomField::TYPE_DATE)
+						$dates[$key] = $data['label'];
 				}
 				$tpl->assign('dates', $dates);
 			
@@ -303,10 +303,8 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				DevblocksEventHelper::renderActionUnscheduleBehavior($trigger);
 				break;
 				
-			case 'set_item_links':
-				$contexts = Extension_DevblocksContext::getAll(false);
-				$tpl->assign('contexts', $contexts);
-				$tpl->display('devblocks:cerberusweb.core::events/action_set_links.tpl');
+			case 'set_links':
+				DevblocksEventHelper::renderActionSetLinks($trigger);
 				break;
 				
 			default:
@@ -320,7 +318,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 		
 		$tpl->clearAssign('params');
 		$tpl->clearAssign('namePrefix');
-		$tpl->clearAssign('token_labels');		
+		$tpl->clearAssign('token_labels');
 	}
 	
 	function simulateActionExtension($token, $trigger, $params, DevblocksDictionaryDelegate $dict) {
@@ -358,7 +356,8 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				return DevblocksEventHelper::simulateActionUnscheduleBehavior($params, $dict);
 				break;
 				
-			case 'set_item_links':
+			case 'set_links':
+				return DevblocksEventHelper::simulateActionSetLinks($trigger, $params, $dict);
 				break;
 				
 			default:
@@ -379,7 +378,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 					if(!empty($context) && !empty($context_id))
 						return DevblocksEventHelper::simulateActionSetCustomField($custom_field, 'item_custom', $params, $dict, $context, $context_id);
 				}
-				break;	
+				break;
 		}
 	}
 
@@ -418,33 +417,8 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				DevblocksEventHelper::runActionUnscheduleBehavior($params, $dict);
 				break;
 				
-			case 'set_item_links':
-				@$to_context_strings = $params['context_objects'];
-
-				if(!is_array($to_context_strings) || empty($to_context_strings))
-					break;
-
-				$from_context = null;
-				$from_context_id = null;
-				
-				switch($token) {
-					case 'set_item_links':
-						$from_context = 'cerberusweb.contexts.feed.item';
-						@$from_context_id = $dict->item_id;
-						break;
-				}
-				
-				if(empty($from_context) || empty($from_context_id))
-					break;
-				
-				foreach($to_context_strings as $to_context_string) {
-					@list($to_context, $to_context_id) = explode(':', $to_context_string);
-					
-					if(empty($to_context) || empty($to_context_id))
-						continue;
-					
-					DAO_ContextLink::setLink($from_context, $from_context_id, $to_context, $to_context_id);
-				}				
+			case 'set_links':
+				DevblocksEventHelper::runActionSetLinks($trigger, $params, $dict);
 				break;
 				
 			default:
@@ -465,7 +439,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 					if(!empty($context) && !empty($context_id))
 						DevblocksEventHelper::runActionSetCustomField($custom_field, 'item_custom', $params, $dict, $context, $context_id);
 				}
-				break;	
+				break;
 		}
 	}
 	
