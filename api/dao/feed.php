@@ -147,6 +147,7 @@ class DAO_Feed extends C4_ORMHelper {
 		$args = array(
 			'join_sql' => &$join_sql,
 			'where_sql' => &$where_sql,
+			'tables' => &$tables,
 			'has_multiple_values' => &$has_multiple_values
 		);
 		
@@ -184,7 +185,7 @@ class DAO_Feed extends C4_ORMHelper {
 			
 			case SearchFields_Feed::VIRTUAL_WATCHERS:
 				$args['has_multiple_values'] = true;
-				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
+				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $args['join_sql'], $args['where_sql'], $args['tables']);
 				break;
 		}
 	}
@@ -213,7 +214,7 @@ class DAO_Feed extends C4_ORMHelper {
 		$has_multiple_values = $query_parts['has_multiple_values'];
 		$sort_sql = $query_parts['sort'];
 		
-		$sql = 
+		$sql =
 			$select_sql.
 			$join_sql.
 			$where_sql.
@@ -241,7 +242,7 @@ class DAO_Feed extends C4_ORMHelper {
 
 		// [JAS]: Count all
 		if($withCounts) {
-			$count_sql = 
+			$count_sql =
 				($has_multiple_values ? "SELECT COUNT(DISTINCT feed.id) " : "SELECT COUNT(feed.id) ").
 				$join_sql.
 				$where_sql;
@@ -297,7 +298,7 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 		// Sort by label (translation-conscious)
 		DevblocksPlatform::sortObjects($columns, 'db_label');
 
-		return $columns;		
+		return $columns;
 	}
 };
 
@@ -385,7 +386,7 @@ class View_Feed extends C4_AbstractView {
 				$this->_renderVirtualWatchers($param);
 				break;
 		}
-	}	
+	}
 	
 	function renderCriteria($field) {
 		$tpl = DevblocksPlatform::getTemplateService();
@@ -551,7 +552,7 @@ class View_Feed extends C4_AbstractView {
 		}
 
 		unset($ids);
-	}			
+	}
 };
 
 class Context_Feed extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
@@ -571,7 +572,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 	function getMeta($context_id) {
 		$feed = DAO_Feed::get($context_id);
 		
-		$url = $this->profileGetUrl($context_id); 
+		$url = $this->profileGetUrl($context_id);
 		
 		$friendly = DevblocksPlatform::strToPermalink($feed->name);
 		
@@ -663,7 +664,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		}
 		
 		return $values;
-	}	
+	}
 
 	function getChooserView($view_id=null) {
 		$active_worker = CerberusApplication::getActiveWorker();
@@ -700,7 +701,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		$view_id = str_replace('.','_',$this->id);
 		
 		$defaults = new C4_AbstractViewModel();
-		$defaults->id = $view_id; 
+		$defaults->id = $view_id;
 		$defaults->class_name = $this->getViewClass();
 		$view = C4_AbstractViewLoader::getView($view_id, $defaults);
 		//$view->name = 'Calls';
@@ -808,5 +809,5 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		if(!empty($custom_fields) && !empty($meta['object_id'])) {
 			DAO_CustomFieldValue::formatAndSetFieldValues($this->manifest->id, $meta['object_id'], $custom_fields, false, true, true); //$is_blank_unset (4th)
 		}
-	}	
+	}
 };
