@@ -18,7 +18,7 @@ class FeedsCron extends CerberusCronPageExtension {
 				// Look up by GUID
 				$results = DAO_FeedItem::getWhere(sprintf("%s = %s AND %s = %d",
 					DAO_FeedItem::GUID,
-					C4_ORMHelper::qstr($guid),
+					Cerb_ORMHelper::qstr($guid),
 					DAO_FeedItem::FEED_ID,
 					$feed_id
 				));
@@ -38,7 +38,7 @@ class FeedsCron extends CerberusCronPageExtension {
 				
 				$logger->info(sprintf("[Feeds] [%s] Imported: %s", $feed->name, $item['title']));
 			}
-		}		
+		}
 		
 		$logger->info("[Feeds] Feed Reader Finished");
 	}
@@ -108,7 +108,8 @@ class Page_Feeds extends CerberusPageExtension {
 						DAO_Comment::CONTEXT => 'cerberusweb.contexts.feed',
 						DAO_Comment::CONTEXT_ID => $id,
 						DAO_Comment::COMMENT => $comment,
-						DAO_Comment::ADDRESS_ID => $active_worker->getAddress()->id,
+						DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
+						DAO_Comment::OWNER_CONTEXT_ID => $active_worker->id,
 				);
 				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
 			}
@@ -117,7 +118,7 @@ class Page_Feeds extends CerberusPageExtension {
 			@$field_ids = DevblocksPlatform::importGPC($_REQUEST['field_ids'], 'array', array());
 			DAO_CustomFieldValue::handleFormPost('cerberusweb.contexts.feed', $id, $field_ids);
 		}
-	}	
+	}
 	
 	function saveFeedItemPopupAction() {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'], 'string', '');
@@ -156,7 +157,8 @@ class Page_Feeds extends CerberusPageExtension {
 					DAO_Comment::CONTEXT => 'cerberusweb.contexts.feed.item',
 					DAO_Comment::CONTEXT_ID => $id,
 					DAO_Comment::COMMENT => $comment,
-					DAO_Comment::ADDRESS_ID => $active_worker->getAddress()->id,
+					DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
+					DAO_Comment::OWNER_CONTEXT_ID => $active_worker->id,
 				);
 				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
 			}
@@ -260,7 +262,7 @@ class Page_Feeds extends CerberusPageExtension {
 		
 		$view->render();
 		return;
-	}	
+	}
 	
 	function viewFeedItemCloseAction() {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
@@ -278,7 +280,7 @@ class Page_Feeds extends CerberusPageExtension {
 		));
 		
 		$view->render();
-		return;		
+		return;
 	}
 	
 	function viewFeedItemExploreAction() {
@@ -288,7 +290,7 @@ class Page_Feeds extends CerberusPageExtension {
 		$url_writer = DevblocksPlatform::getUrlService();
 		
 		// Generate hash
-		$hash = md5($view_id.$active_worker->id.time()); 
+		$hash = md5($view_id.$active_worker->id.time());
 		
 		// Loop through view and get IDs
 		$view = C4_AbstractViewLoader::getView($view_id);
@@ -322,7 +324,7 @@ class Page_Feeds extends CerberusPageExtension {
 					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=search&type=feed_item', true),
 //					'toolbar_extension_id' => 'cerberusweb.explorer.toolbar.',
 				);
-				$models[] = $model; 
+				$models[] = $model;
 				
 				$view->renderTotal = false; // speed up subsequent pages
 			}
@@ -339,7 +341,7 @@ class Page_Feeds extends CerberusPageExtension {
 					'id' => $id,
 					'url' => $url_writer->writeNoProxy(sprintf("c=profiles&type=feed_item&id=%d", $row[SearchFields_FeedItem::ID]), true),
 				);
-				$models[] = $model; 
+				$models[] = $model;
 			}
 			
 			DAO_ExplorerSet::createFromModels($models);
@@ -358,7 +360,7 @@ class Page_Feeds extends CerberusPageExtension {
 		$url_writer = DevblocksPlatform::getUrlService();
 		
 		// Generate hash
-		$hash = md5($view_id.$active_worker->id.time()); 
+		$hash = md5($view_id.$active_worker->id.time());
 		
 		// Loop through view and get IDs
 		$view = C4_AbstractViewLoader::getView($view_id);
@@ -392,7 +394,7 @@ class Page_Feeds extends CerberusPageExtension {
 					'return_url' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $url_writer->writeNoProxy('c=search&type=feed', true),
 					'toolbar_extension_id' => 'cerberusweb.feed_reader.item.explore.toolbar',
 				);
-				$models[] = $model; 
+				$models[] = $model;
 				
 				$view->renderTotal = false; // speed up subsequent pages
 			}
@@ -410,7 +412,7 @@ class Page_Feeds extends CerberusPageExtension {
 					'url' => $row[SearchFields_FeedItem::URL],
 					'is_closed' => $row[SearchFields_FeedItem::IS_CLOSED],
 				);
-				$models[] = $model; 
+				$models[] = $model;
 			}
 			
 			DAO_ExplorerSet::createFromModels($models);
@@ -420,7 +422,7 @@ class Page_Feeds extends CerberusPageExtension {
 		} while(!empty($results));
 		
 		DevblocksPlatform::redirect(new DevblocksHttpResponse(array('explore',$hash,$orig_pos)));
-	}	
+	}
 
 	function exploreItemStatusAction() {
 		@$id = DevblocksPlatform::importGPC($_REQUEST['id'], 'integer', 0);

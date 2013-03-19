@@ -1,5 +1,5 @@
 <?php
-class DAO_FeedItem extends C4_ORMHelper {
+class DAO_FeedItem extends Cerb_ORMHelper {
 	const ID = 'id';
 	const FEED_ID = 'feed_id';
 	const GUID = 'guid';

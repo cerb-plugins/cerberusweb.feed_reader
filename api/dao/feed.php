@@ -1,5 +1,5 @@
 <?php
-class DAO_Feed extends C4_ORMHelper {
+class DAO_Feed extends Cerb_ORMHelper {
 	const ID = 'id';
 	const NAME = 'name';
 	const URL = 'url';
