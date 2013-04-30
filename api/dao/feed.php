@@ -174,7 +174,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 		$param_key = $param->field;
 		settype($param_key, 'string');
 		
-		$from_context = 'cerberusweb.contexts.feed';
+		$from_context = CerberusContexts::CONTEXT_FEED;
 		$from_index = 'feed.id';
 		
 		switch($param_key) {
@@ -287,7 +287,7 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 		);
 		
 		// Custom Fields
-		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED);
 
 		if(is_array($fields))
 		foreach($fields as $field_id => $field) {
@@ -368,7 +368,7 @@ class View_Feed extends C4_AbstractView {
 		$tpl->assign('view', $this);
 
 		// Custom fields
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED);
 		$tpl->assign('custom_fields', $custom_fields);
 
 		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/feed/view.tpl');
@@ -546,7 +546,7 @@ class View_Feed extends C4_AbstractView {
 			DAO_Feed::update($batch_ids, $change_fields);
 
 			// Custom Fields
-			self::_doBulkSetCustomFields('cerberusweb.contexts.feed', $custom_fields, $batch_ids);
+			self::_doBulkSetCustomFields(CerberusContexts::CONTEXT_FEED, $custom_fields, $batch_ids);
 			
 			unset($batch_ids);
 		}
@@ -591,7 +591,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 			$prefix = 'Feed:';
 		
 		$translate = DevblocksPlatform::getTranslationService();
-		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED);
 
 		// Polymorph
 		if(is_numeric($feed)) {
@@ -618,7 +618,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		// Token values
 		$token_values = array();
 
-		$token_values['_context'] = 'cerberusweb.contexts.feed';
+		$token_values['_context'] = CerberusContexts::CONTEXT_FEED;
 		
 		// Feed item token values
 		if($feed) {
@@ -636,7 +636,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		if(!isset($dictionary['id']))
 			return;
 		
-		$context = 'cerberusweb.contexts.feed';
+		$context = CerberusContexts::CONTEXT_FEED;
 		$context_id = $dictionary['id'];
 		
 		@$is_loaded = $dictionary['_loaded'];
@@ -730,17 +730,17 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 			$tpl->assign('model', $feed);
 		}
 
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED, false);
 		$tpl->assign('custom_fields', $custom_fields);
 		
 		if(!empty($context_id)) {
-			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed', $context_id);
+			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_FEED, $context_id);
 			if(isset($custom_field_values[$context_id]))
 				$tpl->assign('custom_field_values', $custom_field_values[$context_id]);
 		}
 		
 		// Comments
-		$comments = DAO_Comment::getByContext('cerberusweb.contexts.feed', $context_id);
+		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_FEED, $context_id);
 		$last_comment = array_shift($comments);
 		unset($comments);
 		$tpl->assign('last_comment', $last_comment);
@@ -767,7 +767,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 			),
 		);
 	
-		$cfields = DAO_CustomField::getByContext('cerberusweb.contexts.feed');
+		$cfields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED);
 	
 		foreach($cfields as $cfield_id => $cfield) {
 			$keys['cf_' . $cfield_id] = array(

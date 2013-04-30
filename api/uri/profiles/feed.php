@@ -58,27 +58,31 @@ class PageSection_ProfilesFeed extends Extension_PageSection {
 			'value' => $feed->url,
 		);
 		
-		@$values = array_shift(DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed', $feed->id)) or array();
+		// Custom Fields
 
-		foreach($custom_fields as $cf_id => $cfield) {
-			if(!isset($values[$cf_id]))
-				continue;
-				
-			$properties['cf_' . $cf_id] = array(
-				'label' => $cfield->name,
-				'type' => $cfield->type,
-				'value' => $values[$cf_id],
-			);
-		}
+		@$values = array_shift(DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_FEED, $feed->id)) or array();
+		$tpl->assign('custom_field_values', $values);
 		
-		$tpl->assign('properties', $properties);				
+		$properties_cfields = Page_Profiles::getProfilePropertiesCustomFields(CerberusContexts::CONTEXT_FEED, $values);
+		
+		if(!empty($properties_cfields))
+			$properties = array_merge($properties, $properties_cfields);
+		
+		// Custom Field Groups
+
+		$properties_custom_field_groups = Page_Profiles::getProfilePropertiesCustomFieldSets(CerberusContexts::CONTEXT_FEED, $feed->id, $values);
+		$tpl->assign('properties_custom_field_groups', $properties_custom_field_groups);
+		
+		// Properties
+		
+		$tpl->assign('properties', $properties);
 		
 		// Macros
 		$macros = DAO_TriggerEvent::getByOwner(CerberusContexts::CONTEXT_WORKER, $active_worker->id, 'event.macro.feed');
 		$tpl->assign('macros', $macros);
 
 		// Tabs
-		$tab_manifests = Extension_ContextProfileTab::getExtensions(false, 'cerberusweb.contexts.feed');
+		$tab_manifests = Extension_ContextProfileTab::getExtensions(false, CerberusContexts::CONTEXT_FEED);
 		$tpl->assign('tab_manifests', $tab_manifests);
 		
 		// Template
