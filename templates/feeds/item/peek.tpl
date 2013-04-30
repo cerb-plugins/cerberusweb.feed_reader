@@ -35,8 +35,8 @@
 			<td width="0%" nowrap="nowrap" valign="middle" align="right">{$translate->_('common.watchers')|capitalize}: </td>
 			<td width="100%">
 				{if !empty($model->id)}
-					{$object_watchers = DAO_ContextLink::getContextLinks('cerberusweb.contexts.feed.item', array($model->id), CerberusContexts::CONTEXT_WORKER)}
-					{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context='cerberusweb.contexts.feed.item' context_id=$model->id full=true}
+					{$object_watchers = DAO_ContextLink::getContextLinks(CerberusContexts::CONTEXT_FEED_ITEM, array($model->id), CerberusContexts::CONTEXT_WORKER)}
+					{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context=CerberusContexts::CONTEXT_FEED_ITEM context_id=$model->id full=true}
 				{/if}
 			</td>
 		</tr>
@@ -49,6 +49,8 @@
 	{include file="devblocks:cerberusweb.core::internal/custom_fields/bulk/form.tpl" bulk=false}
 </fieldset>
 {/if}
+
+{include file="devblocks:cerberusweb.core::internal/custom_field_groups/peek_custom_fieldsets.tpl" context=CerberusContexts::CONTEXT_FEED_ITEM context_id=$model->id}
 
 {* Comment *}
 {if !empty($last_comment)}

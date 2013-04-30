@@ -143,7 +143,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	        new Model_DevblocksEvent(
 	            'context.delete',
                 array(
-                	'context' => 'cerberusweb.contexts.feed.item',
+                	'context' => CerberusContexts::CONTEXT_FEED_ITEM,
                 	'context_ids' => $ids
                 )
             )
@@ -159,7 +159,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	        new Model_DevblocksEvent(
 	            'context.maint',
                 array(
-                	'context' => 'cerberusweb.contexts.feed.item',
+                	'context' => CerberusContexts::CONTEXT_FEED_ITEM,
                 	'context_table' => 'feed_item',
                 	'context_key' => 'id',
                 )
@@ -248,7 +248,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		if(!is_a($param, 'DevblocksSearchCriteria'))
 			return;
 	
-		$from_context = 'cerberusweb.contexts.feed.item';
+		$from_context = CerberusContexts::CONTEXT_FEED_ITEM;
 		$from_index = 'feed_item.id';
 		
 		$param_key = $param->field;
@@ -380,7 +380,7 @@ class SearchFields_FeedItem implements IDevblocksSearchFields {
 		}
 		
 		// Custom Fields
-		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed.item');
+		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED_ITEM);
 
 		if(is_array($fields))
 		foreach($fields as $field_id => $field) {
@@ -521,7 +521,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK:
-				$counts = $this->_getSubtotalCountForContextLinkColumn('DAO_FeedItem', 'cerberusweb.contexts.feed.item', $column);
+				$counts = $this->_getSubtotalCountForContextLinkColumn('DAO_FeedItem', CerberusContexts::CONTEXT_FEED_ITEM, $column);
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
@@ -787,7 +787,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 			DAO_FeedItem::update($batch_ids, $change_fields);
 
 			// Custom Fields
-			self::_doBulkSetCustomFields('cerberusweb.contexts.feed.item', $custom_fields, $batch_ids);
+			self::_doBulkSetCustomFields(CerberusContexts::CONTEXT_FEED_ITEM, $custom_fields, $batch_ids);
 			
 			// Scheduled behavior
 			if(isset($do['behavior']) && is_array($do['behavior'])) {
@@ -799,7 +799,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 				foreach($batch_ids as $batch_id) {
 					DAO_ContextScheduledBehavior::create(array(
 						DAO_ContextScheduledBehavior::BEHAVIOR_ID => $behavior_id,
-						DAO_ContextScheduledBehavior::CONTEXT => 'cerberusweb.contexts.feed.item',
+						DAO_ContextScheduledBehavior::CONTEXT => CerberusContexts::CONTEXT_FEED_ITEM,
 						DAO_ContextScheduledBehavior::CONTEXT_ID => $batch_id,
 						DAO_ContextScheduledBehavior::RUN_DATE => $behavior_when,
 						DAO_ContextScheduledBehavior::VARIABLES_JSON => json_encode($behavior_params),
@@ -812,9 +812,9 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals {
 				$watcher_params = $do['watchers'];
 				foreach($batch_ids as $batch_id) {
 					if(isset($watcher_params['add']) && is_array($watcher_params['add']))
-						CerberusContexts::addWatchers('cerberusweb.contexts.feed.item', $batch_id, $watcher_params['add']);
+						CerberusContexts::addWatchers(CerberusContexts::CONTEXT_FEED_ITEM, $batch_id, $watcher_params['add']);
 					if(isset($watcher_params['remove']) && is_array($watcher_params['remove']))
-						CerberusContexts::removeWatchers('cerberusweb.contexts.feed.item', $batch_id, $watcher_params['remove']);
+						CerberusContexts::removeWatchers(CerberusContexts::CONTEXT_FEED_ITEM, $batch_id, $watcher_params['remove']);
 				}
 			}
 			
@@ -860,7 +860,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$prefix = 'Feed:Item:';
 		
 		$translate = DevblocksPlatform::getTranslationService();
-		$fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed.item');
+		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED_ITEM);
 
 		// Polymorph
 		if(is_numeric($item)) {
@@ -889,7 +889,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		// Token values
 		$token_values = array();
 		
-		$token_values['_context'] = 'cerberusweb.contexts.feed.item';
+		$token_values['_context'] = CerberusContexts::CONTEXT_FEED_ITEM;
 		
 		// Feed item token values
 		if($item) {
@@ -932,7 +932,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		if(!isset($dictionary['id']))
 			return;
 		
-		$context = 'cerberusweb.contexts.feed.item';
+		$context = CerberusContexts::CONTEXT_FEED_ITEM;
 		$context_id = $dictionary['id'];
 		
 		@$is_loaded = $dictionary['_loaded'];
@@ -1023,17 +1023,17 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$tpl->assign('model', $item);
 		}
 		
-		$custom_fields = DAO_CustomField::getByContext('cerberusweb.contexts.feed.item');
+		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED_ITEM, false);
 		$tpl->assign('custom_fields', $custom_fields);
 		
 		if(!empty($context_id)) {
-			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds('cerberusweb.contexts.feed.item', $context_id);
+			$custom_field_values = DAO_CustomFieldValue::getValuesByContextIds(CerberusContexts::CONTEXT_FEED_ITEM, $context_id);
 			if(isset($custom_field_values[$context_id]))
 				$tpl->assign('custom_field_values', $custom_field_values[$context_id]);
 		}
 		
 		// Comments
-		$comments = DAO_Comment::getByContext('cerberusweb.contexts.feed.item', $context_id);
+		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_FEED_ITEM, $context_id);
 		$last_comment = array_shift($comments);
 		unset($comments);
 		$tpl->assign('last_comment', $last_comment);
