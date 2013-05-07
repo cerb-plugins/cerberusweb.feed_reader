@@ -183,6 +183,10 @@ class DAO_Feed extends Cerb_ORMHelper {
 				self::_searchComponentsVirtualContextLinks($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
 				break;
 			
+			case SearchFields_Feed::VIRTUAL_HAS_FIELDSET:
+				self::_searchComponentsVirtualHasFieldset($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
+				break;
+				
 			case SearchFields_Feed::VIRTUAL_WATCHERS:
 				$args['has_multiple_values'] = true;
 				self::_searchComponentsVirtualWatchers($param, $from_context, $from_index, $args['join_sql'], $args['where_sql'], $args['tables']);
@@ -266,6 +270,7 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 	
 	// Virtuals
 	const VIRTUAL_CONTEXT_LINK = '*_context_link';
+	const VIRTUAL_HAS_FIELDSET = '*_has_fieldset';
 	const VIRTUAL_WATCHERS = '*_workers';
 	
 	/**
@@ -283,17 +288,18 @@ class SearchFields_Feed implements IDevblocksSearchFields {
 			self::CONTEXT_LINK_ID => new DevblocksSearchField(self::CONTEXT_LINK_ID, 'context_link', 'from_context_id', null),
 				
 			self::VIRTUAL_CONTEXT_LINK => new DevblocksSearchField(self::VIRTUAL_CONTEXT_LINK, '*', 'context_link', $translate->_('common.links'), null),
+			self::VIRTUAL_HAS_FIELDSET => new DevblocksSearchField(self::VIRTUAL_HAS_FIELDSET, '*', 'has_fieldset', $translate->_('common.fieldset'), null),
 			self::VIRTUAL_WATCHERS => new DevblocksSearchField(self::VIRTUAL_WATCHERS, '*', 'workers', $translate->_('common.watchers'), 'WS'),
 		);
 		
-		// Custom Fields
-		$fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED);
-
-		if(is_array($fields))
-		foreach($fields as $field_id => $field) {
-			$key = 'cf_'.$field_id;
-			$columns[$key] = new DevblocksSearchField($key,$key,'field_value',$field->name,$field->type);
-		}
+		// Custom fields with fieldsets
+		
+		$custom_columns = DevblocksSearchField::getCustomSearchFieldsByContexts(array(
+			CerberusContexts::CONTEXT_FEED,
+		));
+		
+		if(is_array($custom_columns))
+			$columns = array_merge($columns, $custom_columns);
 		
 		// Sort by label (translation-conscious)
 		DevblocksPlatform::sortObjects($columns, 'db_label');
@@ -328,6 +334,7 @@ class View_Feed extends C4_AbstractView {
 			SearchFields_Feed::CONTEXT_LINK,
 			SearchFields_Feed::CONTEXT_LINK_ID,
 			SearchFields_Feed::VIRTUAL_CONTEXT_LINK,
+			SearchFields_Feed::VIRTUAL_HAS_FIELDSET,
 			SearchFields_Feed::VIRTUAL_WATCHERS,
 		));
 		
@@ -382,6 +389,10 @@ class View_Feed extends C4_AbstractView {
 				$this->_renderVirtualContextLinks($param);
 				break;
 			
+			case SearchFields_Feed::VIRTUAL_HAS_FIELDSET:
+				$this->_renderVirtualHasFieldset($param);
+				break;
+				
 			case SearchFields_Feed::VIRTUAL_WATCHERS:
 				$this->_renderVirtualWatchers($param);
 				break;
@@ -414,6 +425,10 @@ class View_Feed extends C4_AbstractView {
 				$contexts = Extension_DevblocksContext::getAll(false);
 				$tpl->assign('contexts', $contexts);
 				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_link.tpl');
+				break;
+				
+			case SearchFields_Feed::VIRTUAL_HAS_FIELDSET:
+				$this->_renderCriteriaHasFieldset($tpl, CerberusContexts::CONTEXT_FEED);
 				break;
 				
 			case SearchFields_Feed::VIRTUAL_WATCHERS:
@@ -471,6 +486,11 @@ class View_Feed extends C4_AbstractView {
 			case SearchFields_Feed::VIRTUAL_CONTEXT_LINK:
 				@$context_links = DevblocksPlatform::importGPC($_REQUEST['context_link'],'array',array());
 				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$context_links);
+				break;
+				
+			case SearchFields_Feed::VIRTUAL_HAS_FIELDSET:
+				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',array());
+				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$options);
 				break;
 
 			case SearchFields_Feed::VIRTUAL_WATCHERS:
@@ -610,11 +630,10 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 			'url' => $prefix.$translate->_('common.url'),
 		);
 		
-		if(is_array($fields))
-		foreach($fields as $cf_id => $field) {
-			$token_labels['custom_'.$cf_id] = $prefix.$field->name;
-		}
-
+		// Custom field/fieldset token labels
+		if(false !== ($custom_field_labels = $this->_getTokenLabelsFromCustomFields($fields, $prefix)) && is_array($custom_field_labels))
+			$token_labels = array_merge($token_labels, $custom_field_labels);
+		
 		// Token values
 		$token_values = array();
 
