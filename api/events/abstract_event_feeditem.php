@@ -49,7 +49,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 		@$item_id = $event_model->params['item_id'];
 		$merge_labels = array();
 		$merge_values = array();
-		CerberusContexts::getContext('cerberusweb.contexts.feed.item', $item_id, $merge_labels, $merge_values, null, true);
+		CerberusContexts::getContext(CerberusContexts::CONTEXT_FEED_ITEM, $item_id, $merge_labels, $merge_values, null, true);
 
 			// Merge
 			CerberusContexts::merge(
@@ -69,11 +69,17 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 		$this->setValues($values);
 	}
 	
+	function renderSimulatorTarget($trigger, $event_model) {
+		$context = CerberusContexts::CONTEXT_FEED_ITEM;
+		$context_id = $event_model->params['item_id'];
+		DevblocksEventHelper::renderSimulatorTarget($context, $context_id, $trigger, $event_model);
+	}
+	
 	function getValuesContexts($trigger) {
 		$vals = array(
 			'item_id' => array(
 				'label' => 'Feed item',
-				'context' => 'cerberusweb.contexts.feed.item',
+				'context' => CerberusContexts::CONTEXT_FEED_ITEM,
 			),
 			'item_watchers' => array(
 				'label' => 'Feed item watchers',
@@ -165,7 +171,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 				
 				switch($token) {
 					case 'item_link':
-						$from_context = 'cerberusweb.contexts.feed.item';
+						$from_context = CerberusContexts::CONTEXT_FEED_ITEM;
 						@$from_context_id = $dict->item_id;
 						break;
 					default:
