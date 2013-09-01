@@ -114,7 +114,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 		$labels['item_feed_watcher_count'] = 'Feed watcher count';
 		
 		$types = array(
-			'item_created_date|date' => Model_CustomField::TYPE_DATE,
+			'item_created_date' => Model_CustomField::TYPE_DATE,
 			'item_guid' => Model_CustomField::TYPE_SINGLE_LINE,
 			'item_is_closed' => Model_CustomField::TYPE_CHECKBOX,
 			'item_title' => Model_CustomField::TYPE_SINGLE_LINE,

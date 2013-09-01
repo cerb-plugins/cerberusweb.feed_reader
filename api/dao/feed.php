@@ -606,6 +606,13 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		);
 	}
 	
+	// [TODO] Interface
+	function getDefaultProperties() {
+		return array(
+			'url',
+		);
+	}
+	
 	function getContext($feed, &$token_labels, &$token_values, $prefix=null) {
 		if(is_null($prefix))
 			$prefix = 'Feed:';
@@ -626,8 +633,16 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		
 		// Token labels
 		$token_labels = array(
+			'_label' => $prefix,
 			'name' => $prefix.$translate->_('common.name'),
 			'url' => $prefix.$translate->_('common.url'),
+		);
+		
+		// Token types
+		$token_types = array(
+			'_label' => 'context_url',
+			'name' => Model_CustomField::TYPE_SINGLE_LINE,
+			'url' => Model_CustomField::TYPE_URL,
 		);
 		
 		// Custom field/fieldset token labels
@@ -638,6 +653,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		$token_values = array();
 
 		$token_values['_context'] = CerberusContexts::CONTEXT_FEED;
+		$token_values['_types'] = $token_types;
 		
 		// Feed item token values
 		if($feed) {

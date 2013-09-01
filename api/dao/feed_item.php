@@ -880,6 +880,16 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		);
 	}
 	
+	// [TODO] Interface
+	function getDefaultProperties() {
+		return array(
+			'feed__label',
+			'created_date',
+			'is_closed',
+			'url',
+		);
+	}
+	
 	function getContext($item, &$token_labels, &$token_values, $prefix=null) {
 		if(is_null($prefix))
 			$prefix = 'Feed:Item:';
@@ -898,12 +908,24 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		
 		// Token labels
 		$token_labels = array(
-			'created_date|date' => $prefix.$translate->_('common.created'),
+			'_label' => $prefix,
+			'created_date' => $prefix.$translate->_('common.created'),
 			'guid' => $prefix.$translate->_('dao.feed_item.guid'),
 			'is_closed' => $prefix.$translate->_('dao.feed_item.is_closed'),
 			'title' => $prefix.$translate->_('common.title'),
 			'url' => $prefix.$translate->_('common.url'),
 			'record_url' => $prefix.$translate->_('common.url.record'),
+		);
+		
+		// Token types
+		$token_types = array(
+			'_label' => 'context_url',
+			'created_date' => Model_CustomField::TYPE_DATE,
+			'guid' => Model_CustomField::TYPE_SINGLE_LINE,
+			'is_closed' => Model_CustomField::TYPE_CHECKBOX,
+			'title' => Model_CustomField::TYPE_SINGLE_LINE,
+			'url' => Model_CustomField::TYPE_URL,
+			'record_url' => Model_CustomField::TYPE_URL,
 		);
 		
 		// Custom field/fieldset token labels
@@ -914,6 +936,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$token_values = array();
 		
 		$token_values['_context'] = CerberusContexts::CONTEXT_FEED_ITEM;
+		$token_values['_types'] = $token_types;
 		
 		// Feed item token values
 		if($item) {
