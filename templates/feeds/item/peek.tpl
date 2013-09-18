@@ -32,7 +32,7 @@
 
 		{* Watchers *}
 		<tr>
-			<td width="0%" nowrap="nowrap" valign="middle" align="right">{$translate->_('common.watchers')|capitalize}: </td>
+			<td width="0%" nowrap="nowrap" valign="middle" align="right">{'common.watchers'|devblocks_translate|capitalize}: </td>
 			<td width="100%">
 				{if !empty($model->id)}
 					{$object_watchers = DAO_ContextLink::getContextLinks(CerberusContexts::CONTEXT_FEED_ITEM, array($model->id), CerberusContexts::CONTEXT_WORKER)}
@@ -67,8 +67,8 @@
 	</div>
 </fieldset>
 
-<button type="button" onclick="genericAjaxPopupPostCloseReloadView(null,'frmFeedItemPopup','{$view_id}',false,'feeditem_save');"><span class="cerb-sprite2 sprite-tick-circle"></span> {$translate->_('common.save_changes')|capitalize}</button>
-{if $model->id && ($active_worker->is_superuser || $active_worker->id == $model->worker_id)}<button type="button" onclick="if(confirm('Permanently delete this feed item?')) { this.form.do_delete.value='1';genericAjaxPopupPostCloseReloadView(null,'frmFeedItemPopup','{$view_id}'); } "><span class="cerb-sprite2 sprite-minus-circle"></span> {$translate->_('common.delete')|capitalize}</button>{/if}
+<button type="button" onclick="genericAjaxPopupPostCloseReloadView(null,'frmFeedItemPopup','{$view_id}',false,'feeditem_save');"><span class="cerb-sprite2 sprite-tick-circle"></span> {'common.save_changes'|devblocks_translate|capitalize}</button>
+{if $model->id && ($active_worker->is_superuser || $active_worker->id == $model->worker_id)}<button type="button" onclick="if(confirm('Permanently delete this feed item?')) { this.form.do_delete.value='1';genericAjaxPopupPostCloseReloadView(null,'frmFeedItemPopup','{$view_id}'); } "><span class="cerb-sprite2 sprite-minus-circle"></span> {'common.delete'|devblocks_translate|capitalize}</button>{/if}
 
 {if !empty($model->id)}
 <div style="float:right;">
@@ -81,7 +81,7 @@
 <script type="text/javascript">
 	$popup = genericAjaxPopupFetch('peek');
 	$popup.one('popup_open', function(event,ui) {
-		$(this).dialog('option','title',"{$translate->_('feeds.item')}");
+		$(this).dialog('option','title',"{'feeds.item'|devblocks_translate}");
 		$(this).find('textarea[name=comment]').keyup(function() {
 			if($(this).val().length > 0) {
 				$(this).next('DIV.notify').show();
