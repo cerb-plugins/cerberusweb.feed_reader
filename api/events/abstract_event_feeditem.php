@@ -109,26 +109,13 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 		$labels = $this->getLabels();
 		
 		$labels['item_link'] = 'Feed item is linked';
-		
 		$labels['item_watcher_count'] = 'Feed item watcher count';
 		$labels['item_feed_watcher_count'] = 'Feed watcher count';
 		
-		$types = array(
-			'item_created_date' => Model_CustomField::TYPE_DATE,
-			'item_guid' => Model_CustomField::TYPE_SINGLE_LINE,
-			'item_is_closed' => Model_CustomField::TYPE_CHECKBOX,
-			'item_title' => Model_CustomField::TYPE_SINGLE_LINE,
-			'item_url' => Model_CustomField::TYPE_URL,
-			
-			'item_feed_name' => Model_CustomField::TYPE_SINGLE_LINE,
-			'item_feed_url' => Model_CustomField::TYPE_URL,
-			
-			'item_link' => null,
-			
-			'item_feed_watcher_count' => null,
-			'item_watcher_count' => null,
-		);
-
+		$types['item_link'] = null;
+		$types['item_watcher_count'] = null;
+		$types['item_feed_watcher_count'] = null;
+		
 		$conditions = $this->_importLabelsTypesAsConditions($labels, $types);
 		
 		return $conditions;
