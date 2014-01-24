@@ -81,7 +81,7 @@
 <script type="text/javascript">
 	$popup = genericAjaxPopupFetch('peek');
 	$popup.one('popup_open', function(event,ui) {
-		$(this).dialog('option','title',"{'feeds.item'|devblocks_translate}");
+		$(this).dialog('option','title',"{'feeds.item'|devblocks_translate|escape:'javascript' nofilter}");
 		$(this).find('textarea[name=comment]').keyup(function() {
 			if($(this).val().length > 0) {
 				$(this).next('DIV.notify').show();
