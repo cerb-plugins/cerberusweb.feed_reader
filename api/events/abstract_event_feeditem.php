@@ -107,6 +107,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 	
 	function getConditionExtensions() {
 		$labels = $this->getLabels();
+		$types = $this->getTypes();
 		
 		$labels['item_link'] = 'Feed item is linked';
 		$labels['item_watcher_count'] = 'Feed item watcher count';
