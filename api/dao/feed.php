@@ -112,7 +112,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 		if('*'==substr($sortBy,0,1) || !isset($fields[$sortBy]))
 			$sortBy=null;
 
-        list($tables,$wheres) = parent::_parseSearchParams($params, $columns, $fields, $sortBy);
+		list($tables,$wheres) = parent::_parseSearchParams($params, $columns, $fields, $sortBy);
 		
 		$select_sql = sprintf("SELECT ".
 			"feed.id as %s, ".
@@ -194,19 +194,19 @@ class DAO_Feed extends Cerb_ORMHelper {
 		}
 	}
 	
-    /**
-     * Enter description here...
-     *
-     * @param array $columns
-     * @param DevblocksSearchCriteria[] $params
-     * @param integer $limit
-     * @param integer $page
-     * @param string $sortBy
-     * @param boolean $sortAsc
-     * @param boolean $withCounts
-     * @return array
-     */
-    static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
+	/**
+	 * Enter description here...
+	 *
+	 * @param array $columns
+	 * @param DevblocksSearchCriteria[] $params
+	 * @param integer $limit
+	 * @param integer $page
+	 * @param string $sortBy
+	 * @param boolean $sortAsc
+	 * @param boolean $withCounts
+	 * @return array
+	 */
+	static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
 		$db = DevblocksPlatform::getDatabaseService();
 		
 		// Build search queries
@@ -226,14 +226,13 @@ class DAO_Feed extends Cerb_ORMHelper {
 			$sort_sql;
 			
 		if($limit > 0) {
-    		$rs = $db->SelectLimit($sql,$limit,$page*$limit) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
+			$rs = $db->SelectLimit($sql,$limit,$page*$limit) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
 		} else {
-		    $rs = $db->Execute($sql) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
-            $total = mysqli_num_rows($rs);
+			$rs = $db->Execute($sql) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
+			$total = mysqli_num_rows($rs);
 		}
 		
 		$results = array();
-		$total = -1;
 		
 		while($row = mysqli_fetch_assoc($rs)) {
 			$result = array();
@@ -244,13 +243,17 @@ class DAO_Feed extends Cerb_ORMHelper {
 			$results[$object_id] = $result;
 		}
 
-		// [JAS]: Count all
+		$total = count($results);
+		
 		if($withCounts) {
-			$count_sql =
-				($has_multiple_values ? "SELECT COUNT(DISTINCT feed.id) " : "SELECT COUNT(feed.id) ").
-				$join_sql.
-				$where_sql;
-			$total = $db->GetOne($count_sql);
+			// We can skip counting if we have a less-than-full single page
+			if(!(0 == $page && $total < $limit)) {
+				$count_sql =
+					($has_multiple_values ? "SELECT COUNT(DISTINCT feed.id) " : "SELECT COUNT(feed.id) ").
+					$join_sql.
+					$where_sql;
+				$total = $db->GetOne($count_sql);
+			}
 		}
 		
 		mysqli_free_result($rs);
@@ -647,6 +650,8 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 			$feed = DAO_Feed::get($feed);
 		} elseif($feed instanceof Model_Feed) {
 			// It's what we want already.
+		} elseif(is_array($feed)) {
+			$feed = Cerb_ORMHelper::recastArrayToModel($feed, 'Model_Feed');
 		} else {
 			$feed = null;
 		}
@@ -656,6 +661,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		// Token labels
 		$token_labels = array(
 			'_label' => $prefix,
+			'id' => $prefix.$translate->_('common.id'),
 			'name' => $prefix.$translate->_('common.name'),
 			'url' => $prefix.$translate->_('common.url'),
 		);
@@ -663,6 +669,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		// Token types
 		$token_types = array(
 			'_label' => 'context_url',
+			'id' => Model_CustomField::TYPE_NUMBER,
 			'name' => Model_CustomField::TYPE_SINGLE_LINE,
 			'url' => Model_CustomField::TYPE_URL,
 		);
@@ -688,6 +695,9 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 			$token_values['id'] = $feed->id;
 			$token_values['name'] = $feed->name;
 			$token_values['url'] = $feed->url;
+			
+			// Custom fields
+			$token_values = $this->_importModelCustomFieldsAsValues($feed, $token_values);
 		}
 		
 		return true;

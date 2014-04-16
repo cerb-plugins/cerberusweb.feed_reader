@@ -20,7 +20,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		return $id;
 	}
 	
-	static function update($ids, $fields) {
+	static function update($ids, $fields, $check_deltas=true) {
 		if(!is_array($ids))
 			$ids = array($ids);
 		
@@ -31,16 +31,16 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			if(empty($batch_ids))
 				continue;
 			
-			// Get state before changes
-			$object_changes = parent::_getUpdateDeltas($batch_ids, $fields, get_class());
-
+			// Send events
+			if($check_deltas) {
+				CerberusContexts::checkpointChanges(CerberusContexts::CONTEXT_FEED_ITEM, $batch_ids);
+			}
+			
 			// Make changes
 			parent::_update($batch_ids, 'feed_item', $fields);
 			
 			// Send events
-			if(!empty($object_changes)) {
-				// Local events
-				//self::_processUpdateEvents($object_changes);
+			if($check_deltas) {
 				
 				// Trigger an event about the changes
 				$eventMgr = DevblocksPlatform::getEventService();
@@ -48,7 +48,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 					new Model_DevblocksEvent(
 						'dao.feed_item.update',
 						array(
-							'objects' => $object_changes,
+							'fields' => $fields,
 						)
 					)
 				);
@@ -138,33 +138,33 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		$db->Execute(sprintf("DELETE FROM feed_item WHERE id IN (%s)", $ids_list));
 		
 		// Fire event
-	    $eventMgr = DevblocksPlatform::getEventService();
-	    $eventMgr->trigger(
-	        new Model_DevblocksEvent(
-	            'context.delete',
-                array(
-                	'context' => CerberusContexts::CONTEXT_FEED_ITEM,
-                	'context_ids' => $ids
-                )
-            )
-	    );
+		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr->trigger(
+			new Model_DevblocksEvent(
+				'context.delete',
+				array(
+					'context' => CerberusContexts::CONTEXT_FEED_ITEM,
+					'context_ids' => $ids
+				)
+			)
+		);
 		
 		return true;
 	}
 	
 	static function maint() {
 		// Fire event
-	    $eventMgr = DevblocksPlatform::getEventService();
-	    $eventMgr->trigger(
-	        new Model_DevblocksEvent(
-	            'context.maint',
-                array(
-                	'context' => CerberusContexts::CONTEXT_FEED_ITEM,
-                	'context_table' => 'feed_item',
-                	'context_key' => 'id',
-                )
-            )
-	    );
+		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr->trigger(
+			new Model_DevblocksEvent(
+				'context.maint',
+				array(
+					'context' => CerberusContexts::CONTEXT_FEED_ITEM,
+					'context_table' => 'feed_item',
+					'context_key' => 'id',
+				)
+			)
+		);
 	}
 	
 	public static function random() {
@@ -256,7 +256,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			case SearchFields_FeedItem::FULLTEXT_COMMENT_CONTENT:
 				$search = Extension_DevblocksSearchSchema::get(Search_CommentContent::ID);
 				$query = $search->getQueryFromParam($param);
-				$ids = $search->query($query, array('context_crc32' => sprintf("%u", crc32($from_context))), 250);
+				$ids = $search->query($query, array('context_crc32' => sprintf("%u", crc32($from_context))));
 				
 				$from_ids = DAO_Comment::getContextIdsByContextAndIds($from_context, $ids);
 				
@@ -282,19 +282,19 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		}
 	}
 	
-    /**
-     * Enter description here...
-     *
-     * @param array $columns
-     * @param DevblocksSearchCriteria[] $params
-     * @param integer $limit
-     * @param integer $page
-     * @param string $sortBy
-     * @param boolean $sortAsc
-     * @param boolean $withCounts
-     * @return array
-     */
-    static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
+	/**
+	 * Enter description here...
+	 *
+	 * @param array $columns
+	 * @param DevblocksSearchCriteria[] $params
+	 * @param integer $limit
+	 * @param integer $page
+	 * @param string $sortBy
+	 * @param boolean $sortAsc
+	 * @param boolean $withCounts
+	 * @return array
+	 */
+	static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
 		$db = DevblocksPlatform::getDatabaseService();
 		
 		// Build search queries
@@ -313,14 +313,13 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			($has_multiple_values ? 'GROUP BY feed_item.id ' : '').
 			$sort_sql;
 		if($limit > 0) {
-    		$rs = $db->SelectLimit($sql,$limit,$page*$limit) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
+			$rs = $db->SelectLimit($sql,$limit,$page*$limit) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
 		} else {
-		    $rs = $db->Execute($sql) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
-            $total = mysqli_num_rows($rs);
+			$rs = $db->Execute($sql) or die(__CLASS__ . '('.__LINE__.')'. ':' . $db->ErrorMsg()); /* @var $rs ADORecordSet */
+			$total = mysqli_num_rows($rs);
 		}
 		
 		$results = array();
-		$total = -1;
 		
 		while($row = mysqli_fetch_assoc($rs)) {
 			$result = array();
@@ -331,13 +330,17 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			$results[$object_id] = $result;
 		}
 
-		// [JAS]: Count all
+		$total = count($results);
+		
 		if($withCounts) {
-			$count_sql =
-				($has_multiple_values ? "SELECT COUNT(DISTINCT feed_item.id) " : "SELECT COUNT(feed_item.id) ").
-				$join_sql.
-				$where_sql;
-			$total = $db->GetOne($count_sql);
+			// We can skip counting if we have a less-than-full single page
+			if(!(0 == $page && $total < $limit)) {
+				$count_sql =
+					($has_multiple_values ? "SELECT COUNT(DISTINCT feed_item.id) " : "SELECT COUNT(feed_item.id) ").
+					$join_sql.
+					$where_sql;
+				$total = $db->GetOne($count_sql);
+			}
 		}
 		
 		mysqli_free_result($rs);
@@ -936,6 +939,8 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$item = DAO_FeedItem::get($item);
 		} elseif($item instanceof Model_FeedItem) {
 			// It's what we want already.
+		} elseif(is_array($item)) {
+			$item = Cerb_ORMHelper::recastArrayToModel($item, 'Model_FeedItem');
 		} else {
 			$item = null;
 		}
@@ -943,6 +948,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		// Token labels
 		$token_labels = array(
 			'_label' => $prefix,
+			'id' => $prefix.$translate->_('common.id'),
 			'created_date' => $prefix.$translate->_('common.created'),
 			'guid' => $prefix.$translate->_('dao.feed_item.guid'),
 			'is_closed' => $prefix.$translate->_('dao.feed_item.is_closed'),
@@ -954,6 +960,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		// Token types
 		$token_types = array(
 			'_label' => 'context_url',
+			'id' => Model_CustomField::TYPE_NUMBER,
 			'created_date' => Model_CustomField::TYPE_DATE,
 			'guid' => Model_CustomField::TYPE_SINGLE_LINE,
 			'is_closed' => Model_CustomField::TYPE_CHECKBOX,
@@ -987,6 +994,9 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$token_values['title'] = $item->title;
 			$token_values['url'] = $item->url;
 
+			// Custom fields
+			$token_values = $this->_importModelCustomFieldsAsValues($item, $token_values);
+			
 			// URL
 			$url_writer = DevblocksPlatform::getUrlService();
 			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=profiles&type=feed_item&id=%d-%s",$item->id, DevblocksPlatform::strToPermalink($item->title)), true);
