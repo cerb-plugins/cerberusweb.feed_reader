@@ -1013,7 +1013,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 
 		CerberusContexts::merge(
 			'feed_',
-			'Feed:',
+			$prefix.'Feed:',
 			$merge_token_labels,
 			$merge_token_values,
 			$token_labels,
