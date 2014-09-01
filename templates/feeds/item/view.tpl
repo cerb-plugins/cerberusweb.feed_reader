@@ -79,7 +79,7 @@
 				{include file="devblocks:cerberusweb.core::internal/custom_fields/view/cell_renderer.tpl"}
 			{elseif $column=="fi_url"}
 				<td>
-					<a href="{$result.$column}" target="_blank">{$result.$column}</a>
+					<a href="{$result.$column}" target="_blank">{$result.$column|truncate:64}</a>
 				</td>
 			{elseif $column=="fi_feed_id"}
 				<td>

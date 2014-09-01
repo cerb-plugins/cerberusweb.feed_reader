@@ -18,7 +18,7 @@
 		<tr>
 			<td width="1%" valign="top" nowrap="nowrap"><b>{'common.url'|devblocks_translate|upper}:</b></td>
 			<td width="99%" valign="top">
-				<a href="{$model->url}" target="_blank">{$model->url}</a>
+				<a href="{$model->url}" target="_blank">{$model->url|truncate:64}</a>
 			</td>
 		</tr>
 		<tr>
@@ -52,19 +52,13 @@
 
 {include file="devblocks:cerberusweb.core::internal/custom_fieldsets/peek_custom_fieldsets.tpl" context=CerberusContexts::CONTEXT_FEED_ITEM context_id=$model->id}
 
-{* Comment *}
-{if !empty($last_comment)}
-	{include file="devblocks:cerberusweb.core::internal/comments/comment.tpl" readonly=true comment=$last_comment}
-{/if}
+{* Comments *}
+{include file="devblocks:cerberusweb.core::internal/peek/peek_comments_pager.tpl" comments=$comments}
 
 <fieldset class="peek">
 	<legend>{'common.comment'|devblocks_translate|capitalize}</legend>
 	<textarea name="comment" rows="5" cols="45" style="width:98%;"></textarea>
-	<div class="notify" style="display:none;">
-		<b>{'common.notify_watchers_and'|devblocks_translate}:</b>
-		<button type="button" class="chooser_notify_worker"><span class="cerb-sprite sprite-view"></span></button>
-		<ul class="chooser-container bubbles" style="display:block;"></ul>
-	</div>
+	<div style="float:right;color:rgb(120,120,120);">{'comment.notify.at_mention'|devblocks_translate}</div>
 </fieldset>
 
 <button type="button" onclick="genericAjaxPopupPostCloseReloadView(null,'frmFeedItemPopup','{$view_id}',false,'feeditem_save');"><span class="cerb-sprite2 sprite-tick-circle"></span> {'common.save_changes'|devblocks_translate|capitalize}</button>
@@ -79,18 +73,22 @@
 </form>
 
 <script type="text/javascript">
-	$popup = genericAjaxPopupFetch('peek');
+	var $popup = genericAjaxPopupFetch('peek');
+	
 	$popup.one('popup_open', function(event,ui) {
+		var $textarea = $(this).find('textarea[name=comment]');
+		
 		$(this).dialog('option','title',"{'feeds.item'|devblocks_translate|escape:'javascript' nofilter}");
-		$(this).find('textarea[name=comment]').keyup(function() {
-			if($(this).val().length > 0) {
-				$(this).next('DIV.notify').show();
-			} else {
-				$(this).next('DIV.notify').hide();
-			}
+		
+		// @mentions
+		
+		var atwho_workers = {CerberusApplication::getAtMentionsWorkerDictionaryJson() nofilter};
+
+		$textarea.atwho({
+			at: '@',
+			{literal}tpl: '<li data-value="@${at_mention}">${name} <small style="margin-left:10px;">${title}</small></li>',{/literal}
+			data: atwho_workers,
+			limit: 10
 		});
-	});
-	$('#frmFeedItemPopup button.chooser_notify_worker').each(function() {
-		ajax.chooser(this,'cerberusweb.contexts.worker','notify_worker_ids', { autocomplete:true });
 	});
 </script>

@@ -808,9 +808,8 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		
 		// Comments
 		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_FEED, $context_id);
-		$last_comment = array_shift($comments);
-		unset($comments);
-		$tpl->assign('last_comment', $last_comment);
+		$comments = array_reverse($comments, true);
+		$tpl->assign('comments', $comments);
 		
 		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/feed/peek.tpl');
 	}
