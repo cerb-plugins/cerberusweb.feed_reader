@@ -52,7 +52,8 @@
 
 <fieldset class="peek">
 	<legend>{'common.comment'|devblocks_translate|capitalize}</legend>
-	<textarea name="comment" rows="5" cols="45" style="width:98%;" title="{'comment.notify.at_mention'|devblocks_translate}"></textarea>
+	<div class="cerb-form-hint">{'comment.notify.at_mention'|devblocks_translate}</div>
+	<textarea name="comment" rows="5" cols="45" style="width:98%;"></textarea>
 </fieldset>
 
 <button type="button" onclick="genericAjaxPopupPostCloseReloadView(null,'frmFeedPopup','{$view_id}',false,'feed_save');"><span class="cerb-sprite2 sprite-tick-circle"></span> {'common.save_changes'|devblocks_translate|capitalize}</button>
@@ -78,14 +79,16 @@
 			ajax.chooser(this,'cerberusweb.contexts.worker','add_watcher_ids', { autocomplete:true });
 		});
 		
-		// Tooltips
+		// Form hints
 		
-		$popup.find(':input[title], textarea[title]').tooltip({
-			position: {
-				my: 'left top',
-				at: 'left+10 bottom+5'
-			}
-		});
+		$textarea
+			.focusin(function() {
+				$(this).siblings('div.cerb-form-hint').fadeIn();
+			})
+			.focusout(function() {
+				$(this).siblings('div.cerb-form-hint').fadeOut();
+			})
+			;
 		
 		// @mentions
 		
