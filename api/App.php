@@ -36,6 +36,29 @@ class FeedsCron extends CerberusCronPageExtension {
 				);
 				$item_id = DAO_FeedItem::create($fields);
 				
+				if(empty($item_id))
+					continue;
+				
+				if(!empty($item['content'])) {
+					if(version_compare(APP_VERSION, '6.9.0', '>=')) {
+						$comment = DevblocksPlatform::stripHTML($item['content']);
+						
+					} else {
+						$comment = $this->_stripHTML($item['content']);
+					}
+					
+					if(!empty($comment)) {
+						$comment_id = DAO_Comment::create(array(
+							DAO_Comment::COMMENT => $comment,
+							DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_FEED_ITEM,
+							DAO_Comment::CONTEXT_ID => $item_id,
+							DAO_Comment::CREATED => time(),
+							DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_APPLICATION,
+							DAO_Comment::OWNER_CONTEXT_ID => 0,
+						));
+					}
+				}
+				
 				$logger->info(sprintf("[Feeds] [%s] Imported: %s", $feed->name, $item['title']));
 			}
 		}
@@ -47,6 +70,271 @@ class FeedsCron extends CerberusCronPageExtension {
 	}
 	
 	public function saveConfigurationAction() {
+	}
+	
+	// [TODO] Remove this after 6.9 release and new plugin requirements
+	private function _stripHTML($str, $strip_whitespace=true, $skip_blockquotes=false) {
+		
+		// Pre-process some HTML entities that confuse UTF-8
+		
+		$str = str_ireplace(
+			array(
+				'&rsquo;',     // '
+				'&#8217;',
+				'&#x2019;',
+				'&hellip;',    // ...
+				'&#8230;',
+				'&#x2026;',
+				'&ldquo;',     // "
+				'&#8220;',
+				'&#x201c;',
+				'&rdquo;',     // "
+				'&#8221;',
+				'&#x201d;',
+			),
+			array(
+				"'",
+				"'",
+				"'",
+				'...',
+				'...',
+				'...',
+				'"',
+				'"',
+				'"',
+				'"',
+				'"',
+				'"',
+			),
+			$str
+		);
+		
+		// Pre-process blockquotes
+		if(!$skip_blockquotes) {
+			$dom = new DOMDocument('1.0', LANG_CHARSET_CODE);
+			$dom->strictErrorChecking = false;
+			$dom->recover = true;
+			$dom->validateOnParse = false;
+			
+			libxml_use_internal_errors(true);
+			
+			$dom->loadHTML(sprintf('<?xml encoding="%s">', LANG_CHARSET_CODE) . $str);
+			
+			$errors = libxml_get_errors();
+			libxml_clear_errors();
+			
+			$xpath = new DOMXPath($dom);
+			
+			while(($blockquotes = $xpath->query('//blockquote')) && $blockquotes->length) {
+			
+				foreach($blockquotes as $blockquote) { /* @var $blockquote DOMElement */
+					$nested = $xpath->query('.//blockquote', $blockquote);
+					
+					// If the blockquote contains another blockquote, ignore it for now
+					if($nested->length > 0)
+						continue;
+					
+					// Change the blockquote tags to DIV, prefixed with '>'
+					$div = $dom->createElement('span');
+					
+					$plaintext = DevblocksPlatform::stripHTML($dom->saveXML($blockquote), $strip_whitespace, true);
+					
+					$out = explode("\n", trim($plaintext));
+					
+					array_walk($out, function($line) use ($dom, $div) {
+						$text = $dom->createTextNode('> ' . $line);
+						$div->appendChild($text);
+						$div->appendChild($dom->createElement('br'));
+					});
+					
+					$blockquote->parentNode->replaceChild($div, $blockquote);
+				}
+			}
+			
+			$html = $dom->saveXML();
+			
+			// Make sure it's not blank before trusting it.
+			if(!empty($html)) {
+				$str = $html;
+				unset($html);
+			}
+		}
+		
+		// Convert hyperlinks to plaintext
+		
+		$str = preg_replace_callback(
+			'@<a[^>]*?>(.*?)</a>@si',
+			function($matches) {
+				if(!isset($matches[0]))
+					return false;
+				
+				$out = '';
+				
+				$dom = new DOMDocument('1.0', LANG_CHARSET_CODE);
+				$dom->strictErrorChecking = false;
+				$dom->recover = false;
+				$dom->validateOnParse = false;
+				
+				libxml_use_internal_errors(true);
+				
+				$dom->loadXML($matches[0]);
+				
+				libxml_get_errors();
+				libxml_clear_errors();
+				
+				@$href_link = $dom->documentElement->getAttribute('href');
+				@$href_label = trim($dom->documentElement->nodeValue);
+				
+				// Skip if there is no label text (images, etc)
+				if(empty($href_label)) {
+					$out = null;
+					
+				// If the link and label are the same, ignore label
+				} elseif($href_label == $href_link) {
+					$out = $href_link;
+					
+				// Otherwise, format like Markdown
+				} else {
+					$out = sprintf("[%s](%s)",
+						$href_label,
+						$href_link
+					);
+				}
+				
+				return $out;
+			},
+			$str
+		);
+		
+		// Code blocks to plaintext
+		
+		$str = preg_replace_callback(
+			'@<code[^>]*?>(.*?)</code>@si',
+			function($matches) {
+				if(isset($matches[1])) {
+					$out = $matches[1];
+					$out = str_replace(" ","&nbsp;", $out);
+					return $out;
+				}
+			},
+			$str
+		);
+		
+		// Preformatted blocks to plaintext
+		
+		$str = preg_replace_callback(
+			'#<pre.*?/pre\>#si',
+			function($matches) {
+				if(isset($matches[0])) {
+					$out = $matches[0];
+					$out = str_replace("\n","<br>", trim($out));
+					return '<br>' . $out . '<br>';
+				}
+			},
+			$str
+		);
+		
+		// Strip all CRLF and tabs, spacify </TD>
+		if($strip_whitespace) {
+			$str = str_ireplace(
+				array("\r","\n","\t","</td>"),
+				array('','',' ',' '),
+				trim($str)
+			);
+			
+		} else {
+			$str = str_ireplace(
+				array("\t","</td>"),
+				array(' ',' '),
+				trim($str)
+			);
+		}
+		
+		// Convert Unicode nbsp to space
+		$str = preg_replace(
+			'#\xc2\xa0#',
+			' ',
+			$str
+		);
+		
+		// Handle XHTML variations
+		$str = preg_replace(
+			'@<br[^>]*?>@si',
+			"<br>",
+			$str
+		);
+		
+		// Turn block tags into a linefeed
+		$str = str_ireplace(
+			array(
+				'<BR>',
+				'<P>',
+				'</P>',
+				'</PRE>',
+				'<HR>',
+				'<TR>',
+				'</H1>',
+				'</H2>',
+				'</H3>',
+				'</H4>',
+				'</H5>',
+				'</H6>',
+				'</DIV>',
+				'<UL>',
+				'</UL>',
+				'<OL>',
+				'</OL>',
+				'</LI>',
+				'</OPTION>',
+				'<TABLE>',
+				'</TABLE>',
+			),
+			"\n",
+			$str
+		);
+
+		$str = str_ireplace(
+			array(
+				'<LI>',
+			),
+			"<LI>* ",
+			$str
+		);
+		
+		// Strip non-content tags
+		$search = array(
+			'@<head[^>]*?>.*?</head>@si',
+			'@<style[^>]*?>.*?</style>@si',
+			'@<script[^>]*?.*?</script>@si',
+			'@<object[^>]*?.*?</object>@si',
+			'@<embed[^>]*?.*?</embed>@si',
+			'@<applet[^>]*?.*?</applet>@si',
+			'@<noframes[^>]*?.*?</noframes>@si',
+			'@<noscript[^>]*?.*?</noscript>@si',
+			'@<noembed[^>]*?.*?</noembed>@si',
+		);
+		$str = preg_replace($search, '', $str);
+		
+		// Strip tags
+		$str = strip_tags($str);
+		
+		// Flatten multiple spaces into a single
+		$str = preg_replace('# +#', ' ', $str);
+
+		// Flatten multiple linefeeds into a single
+		$str = preg_replace("#\n{2,}#", "\n\n", $str);
+		
+		// Translate HTML entities into text
+		$str = html_entity_decode($str, ENT_COMPAT, LANG_CHARSET_CODE);
+
+		// Wrap quoted lines
+		// [TODO] This should be more reusable
+		$str = _DevblocksTemplateManager::modifier_devblocks_email_quote($str);
+		
+		// Clean up bytes (needed after HTML entities)
+		$str = mb_convert_encoding($str, LANG_CHARSET_CODE, LANG_CHARSET_CODE);
+		
+		return ltrim($str);
 	}
 };
 endif;
