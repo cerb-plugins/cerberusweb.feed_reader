@@ -118,7 +118,7 @@ class FeedsCron extends CerberusCronPageExtension {
 			
 			libxml_use_internal_errors(true);
 			
-			$dom->loadHTML(sprintf('<?xml encoding="%s">', LANG_CHARSET_CODE) . $str);
+			$dom->loadHTML(sprintf('<?xml version="1.0" encoding="%s">', LANG_CHARSET_CODE) . $str);
 			
 			$errors = libxml_get_errors();
 			libxml_clear_errors();
@@ -170,20 +170,11 @@ class FeedsCron extends CerberusCronPageExtension {
 				
 				$out = '';
 				
-				$dom = new DOMDocument('1.0', LANG_CHARSET_CODE);
-				$dom->strictErrorChecking = false;
-				$dom->recover = false;
-				$dom->validateOnParse = false;
+				if(false == ($dom = simplexml_load_string($matches[0])))
+					return false;
 				
-				libxml_use_internal_errors(true);
-				
-				$dom->loadXML($matches[0]);
-				
-				libxml_get_errors();
-				libxml_clear_errors();
-				
-				@$href_link = $dom->documentElement->getAttribute('href');
-				@$href_label = trim($dom->documentElement->nodeValue);
+				@$href_link = $dom['href'];
+				@$href_label = (string) $dom;
 				
 				// Skip if there is no label text (images, etc)
 				if(empty($href_label)) {
