@@ -42,15 +42,9 @@
 	<legend>{'feeds.item'|devblocks_translate|capitalize}</legend>
 
 	<div style="margin-left:15px;">
-		<div style="margin-bottom:0.25em;">
-			<b>{'common.url'|devblocks_translate}:</b>
-			<a href="{$item->url}" target="_blank">{$item->url}</a>
-		</div>
 		{foreach from=$properties item=v key=k name=props}
 			<div class="property">
-				{if $k == 'feed'}
-					<b>{$v.label|capitalize}:</b>
-					{$v.feed->name}
+				{if $k == '...'}
 				{else}
 					{include file="devblocks:cerberusweb.core::internal/custom_fields/profile_cell_renderer.tpl"}
 				{/if}
@@ -60,10 +54,16 @@
 			{/if}
 		{/foreach}
 		<br clear="all">
+		<div style="margin-bottom:0.25em;">
+			<b>{'common.url'|devblocks_translate}:</b>
+			<a href="{$item->url}" target="_blank">{$item->url}</a>
+		</div>
 	</div>
 </fieldset>
 
 {include file="devblocks:cerberusweb.core::internal/custom_fieldsets/profile_fieldsets.tpl" properties=$properties_custom_fieldsets}
+
+{include file="devblocks:cerberusweb.core::internal/profiles/profile_record_links.tpl" properties=$properties_links}
 
 <div>
 {include file="devblocks:cerberusweb.core::internal/notifications/context_profile.tpl" context=$page_context context_id=$page_context_id}

@@ -49,25 +49,24 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		$properties = array();
 
 		if(!empty($item->feed_id)) {
-			if(null != ($feed = DAO_Feed::get($item->feed_id))) {
-				$properties['feed'] = array(
-						'label' => ucfirst($translate->_('dao.feed_item.feed_id')),
-						'type' => null,
-						'feed' => $feed,
-				);
-			}
+			$properties['feed_id'] = array(
+				'label' => ucfirst($translate->_('dao.feed_item.feed_id')),
+				'type' => Model_CustomField::TYPE_LINK,
+				'params' => array('context' => CerberusContexts::CONTEXT_FEED),
+				'value' => $item->feed_id,
+			);
 		}
 
 		$properties['is_closed'] = array(
-				'label' => ucfirst($translate->_('dao.feed_item.is_closed')),
-				'type' => Model_CustomField::TYPE_CHECKBOX,
-				'value' => $item->is_closed,
+			'label' => ucfirst($translate->_('dao.feed_item.is_closed')),
+			'type' => Model_CustomField::TYPE_CHECKBOX,
+			'value' => $item->is_closed,
 		);
 
 		$properties['created_date'] = array(
-				'label' => ucfirst($translate->_('common.created')),
-				'type' => Model_CustomField::TYPE_DATE,
-				'value' => $item->created_date,
+			'label' => ucfirst($translate->_('common.created')),
+			'type' => Model_CustomField::TYPE_DATE,
+			'value' => $item->created_date,
 		);
 
 		// Custom Fields
@@ -84,6 +83,32 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 
 		$properties_custom_fieldsets = Page_Profiles::getProfilePropertiesCustomFieldsets(CerberusContexts::CONTEXT_FEED_ITEM, $item->id, $values);
 		$tpl->assign('properties_custom_fieldsets', $properties_custom_fieldsets);
+		
+		// Link counts
+		
+		$properties_links = array(
+			CerberusContexts::CONTEXT_FEED_ITEM => array(
+				$item->id => 
+					DAO_ContextLink::getContextLinkCounts(
+						CerberusContexts::CONTEXT_FEED_ITEM,
+						$item->id,
+						array(CerberusContexts::CONTEXT_WORKER, CerberusContexts::CONTEXT_CUSTOM_FIELDSET)
+					),
+			),
+		);
+		
+		if(isset($item->feed_id)) {
+			$properties_links[CerberusContexts::CONTEXT_FEED] = array(
+				$item->feed_id => 
+					DAO_ContextLink::getContextLinkCounts(
+						CerberusContexts::CONTEXT_FEED,
+						$item->feed_id,
+						array(CerberusContexts::CONTEXT_WORKER, CerberusContexts::CONTEXT_CUSTOM_FIELDSET)
+					),
+			);
+		}
+		
+		$tpl->assign('properties_links', $properties_links);
 		
 		// Properties
 		

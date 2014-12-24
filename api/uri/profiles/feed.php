@@ -51,7 +51,7 @@ class PageSection_ProfilesFeed extends Extension_PageSection {
 		$translate = DevblocksPlatform::getTranslationService();
 
 		$properties = array();
-
+		
 		$properties['url'] = array(
 			'label' => ucfirst($translate->_('common.url')),
 			'type' => Model_CustomField::TYPE_URL,
@@ -72,6 +72,21 @@ class PageSection_ProfilesFeed extends Extension_PageSection {
 
 		$properties_custom_fieldsets = Page_Profiles::getProfilePropertiesCustomFieldsets(CerberusContexts::CONTEXT_FEED, $feed->id, $values);
 		$tpl->assign('properties_custom_fieldsets', $properties_custom_fieldsets);
+		
+		// Link counts
+		
+		$properties_links = array(
+			CerberusContexts::CONTEXT_FEED => array(
+				$feed->id => 
+					DAO_ContextLink::getContextLinkCounts(
+						CerberusContexts::CONTEXT_FEED,
+						$feed->id,
+						array(CerberusContexts::CONTEXT_WORKER, CerberusContexts::CONTEXT_CUSTOM_FIELDSET)
+					),
+			),
+		);
+		
+		$tpl->assign('properties_links', $properties_links);
 		
 		// Properties
 		
