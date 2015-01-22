@@ -638,6 +638,19 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 		$fields = self::_appendFieldsFromQuickSearchContext(CerberusContexts::CONTEXT_FEED_ITEM, $fields, null);
 		$fields = self::_appendFieldsFromQuickSearchContext(CerberusContexts::CONTEXT_FEED, $fields, 'feed');
 		
+		// Engine/schema examples: Comments
+		
+		$ft_examples = array();
+		
+		if(false != ($schema = Extension_DevblocksSearchSchema::get(Search_CommentContent::ID))) {
+			if(false != ($engine = $schema->getEngine())) {
+				$ft_examples = $engine->getQuickSearchExamples($schema);
+			}
+		}
+		
+		if(!empty($ft_examples))
+			$fields['comments']['examples'] = $ft_examples;
+		
 		// Sort by keys
 		
 		ksort($fields);
