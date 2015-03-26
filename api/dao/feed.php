@@ -52,6 +52,9 @@ class DAO_Feed extends Cerb_ORMHelper {
 	 * @param integer $id
 	 * @return Model_Feed	 */
 	static function get($id) {
+		if(empty($id))
+			return null;
+		
 		$objects = self::getWhere(sprintf("%s = %d",
 			self::ID,
 			$id
