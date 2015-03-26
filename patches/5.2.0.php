@@ -14,7 +14,7 @@ if(!isset($tables['feed'])) {
 			PRIMARY KEY (id)
 		) ENGINE=%s;
 	", APP_DB_ENGINE);
-	$db->Execute($sql);	
+	$db->ExecuteMaster($sql);	
 }
 
 // ===========================================================================
@@ -37,7 +37,7 @@ if(!isset($tables['feed_item'])) {
 			INDEX is_closed (is_closed)
 		) ENGINE=%s;
 	", APP_DB_ENGINE);
-	$db->Execute($sql);	
+	$db->ExecuteMaster($sql);	
 }
 
 // ===========================================================================

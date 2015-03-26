@@ -18,7 +18,6 @@
 class PageSection_ProfilesFeedItem extends Extension_PageSection {
 	function render() {
 		$tpl = DevblocksPlatform::getTemplateService();
-		$visit = CerberusApplication::getVisit();
 		$request = DevblocksPlatform::getHttpRequest();
 		$translate = DevblocksPlatform::getTranslationService();
 		
@@ -32,18 +31,9 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		if(null != ($item = DAO_FeedItem::get($id)))
 			$tpl->assign('item', $item);
 		
-		// Remember the last tab/URL
-
-		@$selected_tab = array_shift($stack);
-		
 		$point = 'profiles.feed.item.tab';
 		$tpl->assign('point', $point);
 		
-		if(null == $selected_tab) {
-			$selected_tab = $visit->get($point, '');
-		}
-		$tpl->assign('selected_tab', $selected_tab);
-
 		// Properties
 
 		$properties = array();

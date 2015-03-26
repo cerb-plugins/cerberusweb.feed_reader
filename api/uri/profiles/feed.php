@@ -18,7 +18,6 @@
 class PageSection_ProfilesFeed extends Extension_PageSection {
 	function render() {
 		$tpl = DevblocksPlatform::getTemplateService();
-		$visit = CerberusApplication::getVisit();
 		$request = DevblocksPlatform::getHttpRequest();
 		
 		$active_worker = CerberusApplication::getActiveWorker();
@@ -33,18 +32,8 @@ class PageSection_ProfilesFeed extends Extension_PageSection {
 		
 		$tpl->assign('feed', $feed);
 
-		// Remember the last tab/URL
-
-		@$selected_tab = array_shift($stack);
-		
 		$point = 'profiles.feed.tab';
 		$tpl->assign('point', $point);
-		
-		$visit = CerberusApplication::getVisit();
-		if(null == $selected_tab) {
-			$selected_tab = $visit->get($point, '');
-		}
-		$tpl->assign('selected_tab', $selected_tab);
 		
 		// Properties
 		
