@@ -1,6 +1,8 @@
 {$model = DAO_FeedItem::get({$item->params.id})}
 <form action="{devblocks_url}{/devblocks_url}" method="post" id="frmExploreFeedItem">
 	<input type="hidden" name="c" value="feeds">
+	<input type="hidden" name="_csrf_token" value="{$session.csrf_token}">
+	
 	{if !$model->is_closed}
 		<button type="button" class="status close"><span class="glyphicons glyphicons-circle-ok"></span> <label>{'common.close'|devblocks_translate|capitalize}</label></button>
 	{else}
