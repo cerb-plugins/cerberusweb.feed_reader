@@ -23,11 +23,11 @@
 	$('#frmExploreFeedItem BUTTON.status').click(function() {
 		var $btn = $(this);
 		if($btn.hasClass('close')) {
-			$btn.find('label').html('{'common.reopen'|devblocks_translate|capitalize}');
+			$btn.find('label').text('{'common.reopen'|devblocks_translate|capitalize|escape:'javascript'}');
 			$btn.removeClass('close').addClass('reopen').find('span').removeClass('glyphicons-circle-ok').addClass('glyphicons-circle-arrow-top');
 			genericAjaxGet('','c=feeds&a=exploreItemStatus&id={$model->id}&is_closed=1');
 		} else {
-			$btn.find('label').html('{'common.close'|devblocks_translate|capitalize}');
+			$btn.find('label').text('{'common.close'|devblocks_translate|capitalize|escape:'javascript'}');
 			$btn.removeClass('reopen').addClass('close').find('span').removeClass('glyphicons-circle-arrow-top').addClass('glyphicons-circle-ok');
 			genericAjaxGet('','c=feeds&a=exploreItemStatus&id={$model->id}&is_closed=0');
 		}

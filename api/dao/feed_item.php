@@ -826,7 +826,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 				$strings = array();
 
 				if(empty($values)) {
-					echo "(blank)";
+					echo DevblocksPlatform::strEscapeHtml("(blank)");
 					break;
 				}
 				
@@ -836,7 +836,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 					elseif(!isset($feeds[$val]))
 						continue;
 					else
-						$strings[] = $feeds[$val]->name;
+						$strings[] = DevblocksPlatform::strEscapeHtml($feeds[$val]->name);
 				}
 				echo implode(", ", $strings);
 				break;
