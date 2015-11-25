@@ -1032,6 +1032,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			'id' => $item->id,
 			'name' => $item->title,
 			'permalink' => $url,
+			'updated' => $item->created_date,
 		);
 	}
 	
@@ -1248,7 +1249,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		return $view;
 	}
 	
-	function renderPeekPopup($context_id=0, $view_id='') {
+	function renderPeekPopup($context_id=0, $view_id='', $edit=false) {
 		$tpl = DevblocksPlatform::getTemplateService();
 		$tpl->assign('view_id', $view_id);
 		

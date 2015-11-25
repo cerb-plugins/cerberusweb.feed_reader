@@ -15,7 +15,7 @@
 	
 	{* [TODO] HACK!! *}
 	{if DevblocksPlatform::isPluginEnabled('cerberusweb.feedback')}
-	<button type="button" onclick="genericAjaxPopup('peek','c=feedback&a=showEntry&quote='+encodeURIComponent(Devblocks.getSelectedText())+'&url={$model->url|escape:'url'}',null,false,'500');"><img src="{devblocks_url}c=resource&p=cerberusweb.feedback&f=images/question_and_answer.png{/devblocks_url}" align="top"> {'feedback.button.capture'|devblocks_translate|capitalize}</button>
+	<button type="button" onclick="genericAjaxPopup('peek','c=feedback&a=showEntry&quote='+encodeURIComponent(Devblocks.getSelectedText())+'&url={$model->url|escape:'url'}',null,false,'500');"><span class="glyphicons glyphicons-chat"></span> {'feedback.button.capture'|devblocks_translate|capitalize}</button>
 	{/if}
 </form>
 
