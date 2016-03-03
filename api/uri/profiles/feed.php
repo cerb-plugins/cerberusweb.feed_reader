@@ -42,7 +42,7 @@ class PageSection_ProfilesFeed extends Extension_PageSection {
 		$properties = array();
 		
 		$properties['url'] = array(
-			'label' => ucfirst($translate->_('common.url')),
+			'label' => mb_ucfirst($translate->_('common.url')),
 			'type' => Model_CustomField::TYPE_URL,
 			'value' => $feed->url,
 		);

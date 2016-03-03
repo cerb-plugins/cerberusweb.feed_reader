@@ -40,7 +40,7 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 
 		if(!empty($item->feed_id)) {
 			$properties['feed_id'] = array(
-				'label' => ucfirst($translate->_('dao.feed_item.feed_id')),
+				'label' => mb_ucfirst($translate->_('dao.feed_item.feed_id')),
 				'type' => Model_CustomField::TYPE_LINK,
 				'params' => array('context' => CerberusContexts::CONTEXT_FEED),
 				'value' => $item->feed_id,
@@ -48,13 +48,13 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		}
 
 		$properties['is_closed'] = array(
-			'label' => ucfirst($translate->_('dao.feed_item.is_closed')),
+			'label' => mb_ucfirst($translate->_('dao.feed_item.is_closed')),
 			'type' => Model_CustomField::TYPE_CHECKBOX,
 			'value' => $item->is_closed,
 		);
 
 		$properties['created_date'] = array(
-			'label' => ucfirst($translate->_('common.created')),
+			'label' => mb_ucfirst($translate->_('common.created')),
 			'type' => Model_CustomField::TYPE_DATE,
 			'value' => $item->created_date,
 		);
