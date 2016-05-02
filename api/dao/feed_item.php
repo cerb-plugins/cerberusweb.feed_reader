@@ -181,7 +181,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	public static function getSearchQueryComponents($columns, $params, $sortBy=null, $sortAsc=null) {
 		$fields = SearchFields_FeedItem::getFields();
 		
-		list($tables,$wheres) = parent::_parseSearchParams($params, $columns, $fields, $sortBy);
+		list($tables,$wheres) = parent::_parseSearchParams($params, $columns, $fields, $sortBy, array(), 'feed_item.id');
 		
 		$select_sql = sprintf("SELECT ".
 			"feed_item.id as %s, ".
