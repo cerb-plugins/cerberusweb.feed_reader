@@ -548,6 +548,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 	function getSubtotalCounts($column) {
 		$counts = array();
 		$fields = $this->getFields();
+		$context = CerberusContexts::CONTEXT_FEED_ITEM;
 
 		if(!isset($fields[$column]))
 			return array();
@@ -559,29 +560,29 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 				foreach($feeds as $feed_id => $feed) { /* @var $feed Model_Feed */
 					$label_map[$feed_id] = $feed->name;
 				}
-				$counts = $this->_getSubtotalCountForStringColumn('DAO_FeedItem', $column, $label_map, 'in', 'options[]');
+				$counts = $this->_getSubtotalCountForStringColumn($context, $column, $label_map, 'in', 'options[]');
 				break;
 
 			case SearchFields_FeedItem::IS_CLOSED:
-				$counts = $this->_getSubtotalCountForBooleanColumn('DAO_FeedItem', $column);
+				$counts = $this->_getSubtotalCountForBooleanColumn($context, $column);
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK:
-				$counts = $this->_getSubtotalCountForContextLinkColumn('DAO_FeedItem', CerberusContexts::CONTEXT_FEED_ITEM, $column);
+				$counts = $this->_getSubtotalCountForContextLinkColumn($context, $column);
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_HAS_FIELDSET:
-				$counts = $this->_getSubtotalCountForHasFieldsetColumn('DAO_FeedItem', CerberusContexts::CONTEXT_FEED_ITEM, $column);
+				$counts = $this->_getSubtotalCountForHasFieldsetColumn($context, $column);
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
-				$counts = $this->_getSubtotalCountForWatcherColumn('DAO_FeedItem', $column);
+				$counts = $this->_getSubtotalCountForWatcherColumn($context, $column);
 				break;
 			
 			default:
 				// Custom fields
 				if('cf_' == substr($column,0,3)) {
-					$counts = $this->_getSubtotalCountForCustomColumn('DAO_FeedItem', $column, 'feed_item.id');
+					$counts = $this->_getSubtotalCountForCustomColumn($context, $column);
 				}
 				
 				break;
