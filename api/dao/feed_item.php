@@ -1065,7 +1065,6 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		return $labels;
 	}
 	
-	// [TODO] Interface
 	function getDefaultProperties() {
 		return array(
 			'feed__label',

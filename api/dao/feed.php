@@ -724,7 +724,6 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		return $labels;
 	}
 	
-	// [TODO] Interface
 	function getDefaultProperties() {
 		return array(
 			'url',
