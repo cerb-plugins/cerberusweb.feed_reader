@@ -1,6 +1,8 @@
 <form action="{devblocks_url}{/devblocks_url}" method="post" id="frmFeedItemPopup">
-<input type="hidden" name="c" value="feeds">
-<input type="hidden" name="a" value="saveFeedItemPopup">
+<input type="hidden" name="c" value="profiles">
+<input type="hidden" name="a" value="handleSectionAction">
+<input type="hidden" name="section" value="feed_item">
+<input type="hidden" name="action" value="savePeekPopup">
 <input type="hidden" name="view_id" value="{$view_id}">
 {if !empty($model) && !empty($model->id)}<input type="hidden" name="id" value="{$model->id}">{/if}
 <input type="hidden" name="do_delete" value="0">
@@ -29,7 +31,6 @@
 				<label><input type="radio" name="is_closed" value="1" {if !empty($model) && $model->is_closed}checked="checked"{/if}> {'status.closed'|devblocks_translate|capitalize}</label>
 			</td>
 		</tr>
-		
 
 		{* Watchers *}
 		<tr>
@@ -73,24 +74,26 @@
 </form>
 
 <script type="text/javascript">
-	var $popup = genericAjaxPopupFetch('peek');
+$(function() {
+		var $popup = genericAjaxPopupFetch('peek');
+		
+		$popup.one('popup_open', function(event,ui) {
+			var $textarea = $popup.find('textarea[name=comment]');
+			
+			$popup.dialog('option','title',"{'feeds.item'|devblocks_translate|escape:'javascript' nofilter}");
 	
-	$popup.one('popup_open', function(event,ui) {
-		var $textarea = $(this).find('textarea[name=comment]');
-		
-		$(this).dialog('option','title',"{'feeds.item'|devblocks_translate|escape:'javascript' nofilter}");
-
-		// @mentions
-		
-		var atwho_workers = {CerberusApplication::getAtMentionsWorkerDictionaryJson() nofilter};
-
-		$textarea.atwho({
-			at: '@',
-			{literal}displayTpl: '<li>${name} <small style="margin-left:10px;">${title}</small> <small style="margin-left:10px;">@${at_mention}</small></li>',{/literal}
-			{literal}insertTpl: '@${at_mention}',{/literal}
-			data: atwho_workers,
-			searchKey: '_index',
-			limit: 10
+			// @mentions
+			
+			var atwho_workers = {CerberusApplication::getAtMentionsWorkerDictionaryJson() nofilter};
+	
+			$textarea.atwho({
+				at: '@',
+				{literal}displayTpl: '<li>${name} <small style="margin-left:10px;">${title}</small> <small style="margin-left:10px;">@${at_mention}</small></li>',{/literal}
+				{literal}insertTpl: '@${at_mention}',{/literal}
+				data: atwho_workers,
+				searchKey: '_index',
+				limit: 10
+			});
 		});
-	});
+});
 </script>
