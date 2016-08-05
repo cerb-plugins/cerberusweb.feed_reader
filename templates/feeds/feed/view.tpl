@@ -83,7 +83,7 @@
 				<td data-column="{$column}">
 					<input type="checkbox" name="row_id[]" value="{$result.t_id}" style="display:none;">
 					<a href="{devblocks_url}c=profiles&alias=feed&id={$result.t_id}-{$result.t_name|devblocks_permalink}{/devblocks_url}" class="subject">{$result.$column}</a>
-					<button type="button" class="peek" onclick="genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$view_context}&context_id={$result.t_id}&view_id={$view->id}',null,false,'550');"><span class="glyphicons glyphicons-new-window-alt"></span></button> 
+					<button type="button" class="peek" onclick="genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$view_context}&context_id={$result.t_id}&view_id={$view->id}',null,false,'50%');"><span class="glyphicons glyphicons-new-window-alt"></span></button> 
 				</td>
 			{elseif $column=="t_url"}
 				<td data-column="{$column}">

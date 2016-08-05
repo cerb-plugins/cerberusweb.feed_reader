@@ -95,7 +95,7 @@ $(function() {
 	var tabs = $("#profileFeedTabs").tabs(tabOptions);
 	
 	$('#btnDisplayFeedEdit').bind('click', function() {
-		$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'550');
+		$popup = genericAjaxPopup('peek','c=internal&a=showPeekPopup&context={$page_context}&context_id={$page_context_id}',null,false,'50%');
 		$popup.one('feed_save', function(event) {
 			event.stopPropagation();
 			document.location.href = '{devblocks_url}c=profiles&alias=feed&id={$page_context_id}-{$feed->name|devblocks_permalink}{/devblocks_url}';
