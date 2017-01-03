@@ -103,11 +103,6 @@ class Page_Feeds extends CerberusPageExtension {
 			if(empty($id)) { // New
 				$id = DAO_Feed::create($fields);
 	
-				// Watchers
-				@$add_watcher_ids = DevblocksPlatform::sanitizeArray(DevblocksPlatform::importGPC($_REQUEST['add_watcher_ids'],'array',array()),'integer',array('unique','nonzero'));
-				if(!empty($add_watcher_ids))
-					CerberusContexts::addWatchers('cerberusweb.contexts.feed', $id, $add_watcher_ids);
-				
 				// View marquee
 				if(!empty($id) && !empty($view_id)) {
 					C4_AbstractView::setMarqueeContextCreated($view_id, 'cerberusweb.contexts.feed', $id);

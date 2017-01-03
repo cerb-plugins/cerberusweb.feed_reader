@@ -126,10 +126,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 				SearchFields_Feed::URL
 			);
 			
-		$join_sql = "FROM feed ".
-			(isset($tables['context_link']) ? "INNER JOIN context_link ON (context_link.to_context = 'cerberusweb.contexts.feed' AND context_link.to_context_id = feed.id) " : " ").
-			''
-			;
+		$join_sql = "FROM feed ";
 		
 		$where_sql = "".
 			(!empty($wheres) ? sprintf("WHERE %s ",implode(' AND ',$wheres)) : "WHERE 1 ");
@@ -142,7 +139,6 @@ class DAO_Feed extends Cerb_ORMHelper {
 			'join_sql' => &$join_sql,
 			'where_sql' => &$where_sql,
 			'tables' => &$tables,
-			'has_multiple_values' => &$has_multiple_values
 		);
 		
 		array_walk_recursive(
@@ -156,7 +152,6 @@ class DAO_Feed extends Cerb_ORMHelper {
 			'select' => $select_sql,
 			'join' => $join_sql,
 			'where' => $where_sql,
-			'has_multiple_values' => $has_multiple_values,
 			'sort' => $sort_sql,
 		);
 	}
@@ -172,11 +167,6 @@ class DAO_Feed extends Cerb_ORMHelper {
 		$from_index = 'feed.id';
 		
 		switch($param_key) {
-			case SearchFields_Feed::VIRTUAL_CONTEXT_LINK:
-				$args['has_multiple_values'] = true;
-				self::_searchComponentsVirtualContextLinks($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
-				break;
-			
 			case SearchFields_Feed::VIRTUAL_HAS_FIELDSET:
 				self::_searchComponentsVirtualHasFieldset($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
 				break;
@@ -204,14 +194,12 @@ class DAO_Feed extends Cerb_ORMHelper {
 		$select_sql = $query_parts['select'];
 		$join_sql = $query_parts['join'];
 		$where_sql = $query_parts['where'];
-		$has_multiple_values = $query_parts['has_multiple_values'];
 		$sort_sql = $query_parts['sort'];
 		
 		$sql =
 			$select_sql.
 			$join_sql.
 			$where_sql.
-			($has_multiple_values ? 'GROUP BY feed.id ' : '').
 			$sort_sql;
 			
 		if($limit > 0) {
@@ -239,7 +227,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 			// We can skip counting if we have a less-than-full single page
 			if(!(0 == $page && $total < $limit)) {
 				$count_sql =
-					($has_multiple_values ? "SELECT COUNT(DISTINCT feed.id) " : "SELECT COUNT(feed.id) ").
+					"SELECT COUNT(feed.id) ".
 					$join_sql.
 					$where_sql;
 				$total = $db->GetOneSlave($count_sql);
@@ -257,9 +245,6 @@ class SearchFields_Feed extends DevblocksSearchFields {
 	const ID = 't_id';
 	const NAME = 't_name';
 	const URL = 't_url';
-	
-	const CONTEXT_LINK = 'cl_context_from';
-	const CONTEXT_LINK_ID = 'cl_context_from_id';
 	
 	// Virtuals
 	const VIRTUAL_CONTEXT_LINK = '*_context_link';
@@ -280,6 +265,10 @@ class SearchFields_Feed extends DevblocksSearchFields {
 	
 	static function getWhereSQL(DevblocksSearchCriteria $param) {
 		switch($param->field) {
+			case self::VIRTUAL_CONTEXT_LINK:
+				return self::_getWhereSQLFromContextLinksField($param, CerberusContexts::CONTEXT_FEED, self::getPrimaryKey());
+				break;
+				
 			case self::VIRTUAL_WATCHERS:
 				return self::_getWhereSQLFromWatchersField($param, CerberusContexts::CONTEXT_FEED, self::getPrimaryKey());
 				break;
@@ -317,9 +306,6 @@ class SearchFields_Feed extends DevblocksSearchFields {
 			self::NAME => new DevblocksSearchField(self::NAME, 'feed', 'name', $translate->_('common.name'), Model_CustomField::TYPE_SINGLE_LINE, true),
 			self::URL => new DevblocksSearchField(self::URL, 'feed', 'url', $translate->_('common.url'), Model_CustomField::TYPE_SINGLE_LINE, true),
 
-			self::CONTEXT_LINK => new DevblocksSearchField(self::CONTEXT_LINK, 'context_link', 'from_context', null, null, false),
-			self::CONTEXT_LINK_ID => new DevblocksSearchField(self::CONTEXT_LINK_ID, 'context_link', 'from_context_id', null, null, false),
-				
 			self::VIRTUAL_CONTEXT_LINK => new DevblocksSearchField(self::VIRTUAL_CONTEXT_LINK, '*', 'context_link', $translate->_('common.links'), null, false),
 			self::VIRTUAL_HAS_FIELDSET => new DevblocksSearchField(self::VIRTUAL_HAS_FIELDSET, '*', 'has_fieldset', $translate->_('common.fieldset'), null, false),
 			self::VIRTUAL_WATCHERS => new DevblocksSearchField(self::VIRTUAL_WATCHERS, '*', 'workers', $translate->_('common.watchers'), 'WS', false),
@@ -362,16 +348,12 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 			SearchFields_Feed::URL,
 		);
 		$this->addColumnsHidden(array(
-			SearchFields_Feed::CONTEXT_LINK,
-			SearchFields_Feed::CONTEXT_LINK_ID,
 			SearchFields_Feed::VIRTUAL_CONTEXT_LINK,
 			SearchFields_Feed::VIRTUAL_HAS_FIELDSET,
 			SearchFields_Feed::VIRTUAL_WATCHERS,
 		));
 		
 		$this->addParamsHidden(array(
-			SearchFields_Feed::CONTEXT_LINK,
-			SearchFields_Feed::CONTEXT_LINK_ID,
 		));
 		
 		$this->doResetCriteria();
@@ -414,6 +396,9 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 				array(
 					'type' => DevblocksSearchCriteria::TYPE_NUMBER,
 					'options' => array('param_key' => SearchFields_Feed::ID),
+					'examples' => [
+						['type' => 'chooser', 'context' => CerberusContexts::CONTEXT_FEED, 'q' => ''],
+					]
 				),
 			'name' => 
 				array(
@@ -431,6 +416,10 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 					'options' => array('param_key' => SearchFields_Feed::VIRTUAL_WATCHERS, 'match' => DevblocksSearchCriteria::OPTION_TEXT_PARTIAL),
 				),
 		);
+		
+		// Add quick search links
+		
+		$fields = self::_appendVirtualFiltersFromQuickSearchContexts('links', $fields, 'links');
 		
 		// Add searchable custom fields
 		
@@ -454,6 +443,9 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 				break;
 				
 			default:
+				if($field == 'links' || substr($field, 0, 6) == 'links.')
+					return DevblocksSearchCriteria::getContextLinksParamFromTokens($field, $tokens);
+				
 				$search_fields = $this->getQuickSearchFields();
 				return DevblocksSearchCriteria::getParamFromQueryFieldTokens($field, $tokens, $search_fields);
 				break;
@@ -609,6 +601,16 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 };
 
 class Context_Feed extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
+	static function isReadableByActor($models, $actor) {
+		// Everyone can view
+		return CerberusContexts::allowEverything($models);
+	}
+	
+	static function isWriteableByActor($models, $actor) {
+		// Everyone can modify
+		return CerberusContexts::allowEverything($models);
+	}
+	
 	function getRandom() {
 		return DAO_Feed::random();
 	}
@@ -745,10 +747,15 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		
 		if(!$is_loaded) {
 			$labels = array();
-			CerberusContexts::getContext($context, $context_id, $labels, $values, null, true);
+			CerberusContexts::getContext($context, $context_id, $labels, $values, null, true, true);
 		}
 		
 		switch($token) {
+			case 'links':
+				$links = $this->_lazyLoadLinks($context, $context_id);
+				$values = array_merge($values, $fields);
+				break;
+			
 			case 'watchers':
 				$watchers = array(
 					$token => CerberusContexts::getWatchers($context, $context_id, true),
@@ -757,7 +764,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 				break;
 				
 			default:
-				if(substr($token,0,7) == 'custom_') {
+				if(DevblocksPlatform::strStartsWith($token, 'custom_')) {
 					$fields = $this->_lazyLoadCustomFields($token, $context, $context_id);
 					$values = array_merge($values, $fields);
 				}
@@ -810,8 +817,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		
 		if(!empty($context) && !empty($context_id)) {
 			$params_req = array(
-				new DevblocksSearchCriteria(SearchFields_Feed::CONTEXT_LINK,'=',$context),
-				new DevblocksSearchCriteria(SearchFields_Feed::CONTEXT_LINK_ID,'=',$context_id),
+				new DevblocksSearchCriteria(SearchFields_Feed::VIRTUAL_CONTEXT_LINK,'in',array($context.':'.$context_id)),
 			);
 		}
 		
