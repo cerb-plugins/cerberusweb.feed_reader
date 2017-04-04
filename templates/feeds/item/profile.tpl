@@ -1,5 +1,6 @@
 {$page_context = 'cerberusweb.contexts.feed.item'}
 {$page_context_id = $item->id}
+{$is_writeable = Context_FeedItem::isWriteableByActor($item, $active_worker)}
 
 <div style="float:left;">
 	<h1>{$item->title}</h1>
@@ -20,14 +21,18 @@
 		<span>
 		{$object_watchers = DAO_ContextLink::getContextLinks($page_context, array($page_context_id), CerberusContexts::CONTEXT_WORKER)}
 		{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context=$page_context context_id=$page_context_id full=true}
-		</span>		
+		</span>
 		
 		<!-- Macros -->
+		{if $is_writeable}
 		{devblocks_url assign=return_url full=true}c=profiles&alias=feed_item&id={$page_context_id}-{$item->title|devblocks_permalink}{/devblocks_url}
-		{include file="devblocks:cerberusweb.core::internal/macros/display/button.tpl" context=$page_context context_id=$page_context_id macros=$macros return_url=$return_url}		
+		{include file="devblocks:cerberusweb.core::internal/macros/display/button.tpl" context=$page_context context_id=$page_context_id macro_event="event.macro.feeditem" return_url=$return_url}
+		{/if}
 		
 		<!-- Edit -->
+		{if $is_writeable}
 		<button type="button" id="btnDisplayFeedItemEdit" title="{'common.edit'|devblocks_translate|capitalize}"><span class="glyphicons glyphicons-cogwheel"></span></button>
+		{/if}
 	</form>
 	
 	{if $pref_keyboard_shortcuts}
@@ -104,8 +109,6 @@ $(function() {
 			document.location.href = '{devblocks_url}c=profiles&type=feed_item&id={$page_context_id}{/devblocks_url}';
 		});
 	});
-	
-	{include file="devblocks:cerberusweb.core::internal/macros/display/menu_script.tpl" selector_button=null selector_menu=null}
 });
 </script>
 

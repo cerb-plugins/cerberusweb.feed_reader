@@ -87,7 +87,7 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 			),
 		);
 		
-		if(isset($item->feed_id)) {
+		if(!empty($item->feed_id)) {
 			$properties_links[CerberusContexts::CONTEXT_FEED] = array(
 				$item->feed_id => 
 					DAO_ContextLink::getContextLinkCounts(
@@ -103,14 +103,6 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		// Properties
 		
 		$tpl->assign('properties', $properties);
-
-		// Macros
-		
-		$macros = DAO_TriggerEvent::getReadableByActor(
-			$active_worker,
-			'event.macro.feeditem'
-		);
-		$tpl->assign('macros', $macros);
 
 		// Tabs
 		$tab_manifests = Extension_ContextProfileTab::getExtensions(false, CerberusContexts::CONTEXT_FEED_ITEM);
@@ -189,7 +181,7 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		
 		// Macros
 		
-		$macros = DAO_TriggerEvent::getReadableByActor(
+		$macros = DAO_TriggerEvent::getUsableMacrosByWorker(
 			$active_worker,
 			'event.macro.feeditem'
 		);
