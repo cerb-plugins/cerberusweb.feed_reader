@@ -72,25 +72,25 @@
 
 <script type="text/javascript">
 $(function() {
-		var $popup = genericAjaxPopupFetch('peek');
+	var $popup = genericAjaxPopupFetch('peek');
+	
+	$popup.one('popup_open', function(event,ui) {
+		var $textarea = $popup.find('textarea[name=comment]');
 		
-		$popup.one('popup_open', function(event,ui) {
-			var $textarea = $popup.find('textarea[name=comment]');
-			
-			$popup.dialog('option','title',"{'feeds.item'|devblocks_translate|escape:'javascript' nofilter}");
-	
-			// @mentions
-			
-			var atwho_workers = {CerberusApplication::getAtMentionsWorkerDictionaryJson() nofilter};
-	
-			$textarea.atwho({
-				at: '@',
-				{literal}displayTpl: '<li>${name} <small style="margin-left:10px;">${title}</small> <small style="margin-left:10px;">@${at_mention}</small></li>',{/literal}
-				{literal}insertTpl: '@${at_mention}',{/literal}
-				data: atwho_workers,
-				searchKey: '_index',
-				limit: 10
-			});
+		$popup.dialog('option','title',"{'feeds.item'|devblocks_translate|escape:'javascript' nofilter}");
+
+		// @mentions
+		
+		var atwho_workers = {CerberusApplication::getAtMentionsWorkerDictionaryJson() nofilter};
+
+		$textarea.atwho({
+			at: '@',
+			{literal}displayTpl: '<li>${name} <small style="margin-left:10px;">${title}</small> <small style="margin-left:10px;">@${at_mention}</small></li>',{/literal}
+			{literal}insertTpl: '@${at_mention}',{/literal}
+			data: atwho_workers,
+			searchKey: '_index',
+			limit: 10
 		});
+	});
 });
 </script>

@@ -1248,10 +1248,21 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 	function renderPeekPopup($context_id=0, $view_id='', $edit=false) {
 		$tpl = DevblocksPlatform::getTemplateService();
 		$tpl->assign('view_id', $view_id);
+
+		$context = CerberusContexts::CONTEXT_FEED_ITEM;
+		$active_worker = CerberusApplication::getActiveWorker();
 		
-		if(!empty($context_id) && null != ($item = DAO_FeedItem::get($context_id))) {
-			$tpl->assign('model', $item);
-		}
+		if(empty($context_id) || null == ($item = DAO_FeedItem::get($context_id)))
+			return;
+		
+		$tpl->assign('model', $item);
+		
+		// Dictionary
+		$labels = array();
+		$values = array();
+		CerberusContexts::getContext($context, $item, $labels, $values, '', true, false);
+		$dict = DevblocksDictionaryDelegate::instance($values);
+		$tpl->assign('dict', $dict);
 		
 		$custom_fields = DAO_CustomField::getByContext(CerberusContexts::CONTEXT_FEED_ITEM, false);
 		$tpl->assign('custom_fields', $custom_fields);
@@ -1266,6 +1277,11 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$comments = DAO_Comment::getByContext(CerberusContexts::CONTEXT_FEED_ITEM, $context_id);
 		$comments = array_reverse($comments, true);
 		$tpl->assign('comments', $comments);
+		
+		// Interactions
+		$interactions = Event_GetInteractionsForWorker::getInteractionsByPointAndWorker('record:' . $context, $dict, $active_worker);
+		$interactions_menu = Event_GetInteractionsForWorker::getInteractionMenu($interactions);
+		$tpl->assign('interactions_menu', $interactions_menu);
 		
 		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/peek.tpl');
 	}
