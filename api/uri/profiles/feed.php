@@ -17,7 +17,7 @@
 
 class PageSection_ProfilesFeed extends Extension_PageSection {
 	function render() {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$request = DevblocksPlatform::getHttpRequest();
 		
 		$active_worker = CerberusApplication::getActiveWorker();

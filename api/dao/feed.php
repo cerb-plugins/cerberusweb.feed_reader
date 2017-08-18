@@ -3,9 +3,38 @@ class DAO_Feed extends Cerb_ORMHelper {
 	const ID = 'id';
 	const NAME = 'name';
 	const URL = 'url';
+	
+	private function __construct() {}
+
+	static function getFields() {
+		$validation = DevblocksPlatform::services()->validation();
+		
+		// int(10) unsigned
+		$validation
+			->addField(self::ID)
+			->id()
+			->setEditable(false)
+			;
+		// varchar(255)
+		$validation
+			->addField(self::NAME)
+			->string()
+			->setMaxLength(255)
+			->setRequired(true)
+			;
+		// varchar(255)
+		$validation
+			->addField(self::URL)
+			->string()
+			->setMaxLength(255)
+			->setRequired(true)
+			;
+
+		return $validation->getFields();
+	}
 
 	static function create($fields) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		$sql = "INSERT INTO feed () VALUES ()";
 		$db->ExecuteMaster($sql);
@@ -32,7 +61,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 	 * @return Model_Feed[]
 	 */
 	static function getWhere($where=null, $sortBy=null, $sortAsc=true, $limit=null) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 
 		list($where_sql, $sort_sql, $limit_sql) = self::_getWhereSQL($where, $sortBy, $sortAsc, $limit);
 		
@@ -92,7 +121,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 	
 	static function delete($ids) {
 		if(!is_array($ids)) $ids = array($ids);
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		if(empty($ids))
 			return;
@@ -186,7 +215,7 @@ class DAO_Feed extends Cerb_ORMHelper {
 	 * @return array
 	 */
 	static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		// Build search queries
 		$query_parts = self::getSearchQueryComponents($columns,$params,$sortBy,$sortAsc);
@@ -457,7 +486,7 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 	function render() {
 		$this->_sanitize();
 		
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('id', $this->id);
 		$tpl->assign('view', $this);
 
@@ -487,7 +516,7 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 	}
 	
 	function renderCriteria($field) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('id', $this->id);
 
 		switch($field) {
@@ -619,7 +648,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		if(empty($context_id))
 			return '';
 	
-		$url_writer = DevblocksPlatform::getUrlService();
+		$url_writer = DevblocksPlatform::services()->url();
 		$url = $url_writer->writeNoProxy('c=profiles&type=feed&id='.$context_id, true);
 		return $url;
 	}
@@ -734,6 +763,14 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 		
 		return true;
 	}
+	
+	function getKeyToDaoFieldMap() {
+		return [
+			'id' => DAO_Feed::ID,
+			'name' => DAO_Feed::NAME,
+			'url' => DAO_Feed::URL,
+		];
+	}
 
 	function lazyLoadContextValues($token, $dictionary) {
 		if(!isset($dictionary['id']))
@@ -828,7 +865,7 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 	}
 	
 	function renderPeekPopup($context_id=0, $view_id='', $edit=false) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('view_id', $view_id);
 		
 		if(!empty($context_id) && null != ($feed = DAO_Feed::get($context_id))) {

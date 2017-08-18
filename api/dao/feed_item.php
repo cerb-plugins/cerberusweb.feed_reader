@@ -1,15 +1,63 @@
 <?php
 class DAO_FeedItem extends Cerb_ORMHelper {
-	const ID = 'id';
+	const CREATED_DATE = 'created_date';
 	const FEED_ID = 'feed_id';
 	const GUID = 'guid';
+	const ID = 'id';
+	const IS_CLOSED = 'is_closed';
 	const TITLE = 'title';
 	const URL = 'url';
-	const CREATED_DATE = 'created_date';
-	const IS_CLOSED = 'is_closed';
+	
+	private function __construct() {}
+
+	static function getFields() {
+		$validation = DevblocksPlatform::services()->validation();
+		
+		// int(10) unsigned
+		$validation
+			->addField(self::CREATED_DATE)
+			->timestamp()
+			;
+		// int(10) unsigned
+		$validation
+			->addField(self::FEED_ID)
+			->id()
+			;
+		// varchar(64)
+		$validation
+			->addField(self::GUID)
+			->string()
+			->setMaxLength(64)
+			;
+		// int(10) unsigned
+		$validation
+			->addField(self::ID)
+			->id()
+			->setEditable(false)
+			;
+		// tinyint(1) unsigned
+		$validation
+			->addField(self::IS_CLOSED)
+			->bit()
+			;
+		// varchar(255)
+		$validation
+			->addField(self::TITLE)
+			->string()
+			->setMaxLength(255)
+			;
+		// varchar(255)
+		$validation
+			->addField(self::URL)
+			->string()
+			->setMaxLength(255)
+			;
+
+		return $validation->getFields();
+	}
 
 	static function create($fields) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		$sql = "INSERT INTO feed_item () VALUES ()";
 		$db->ExecuteMaster($sql);
@@ -43,7 +91,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			if($check_deltas) {
 				
 				// Trigger an event about the changes
-				$eventMgr = DevblocksPlatform::getEventService();
+				$eventMgr = DevblocksPlatform::services()->event();
 				$eventMgr->trigger(
 					new Model_DevblocksEvent(
 						'dao.feed_item.update',
@@ -124,7 +172,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	 * @return Model_FeedItem[]
 	 */
 	static function getWhere($where=null, $sortBy=null, $sortAsc=true, $limit=null) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 
 		list($where_sql, $sort_sql, $limit_sql) = self::_getWhereSQL($where, $sortBy, $sortAsc, $limit);
 		
@@ -188,7 +236,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	
 	static function delete($ids) {
 		if(!is_array($ids)) $ids = array($ids);
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		if(empty($ids))
 			return;
@@ -198,7 +246,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		$db->ExecuteMaster(sprintf("DELETE FROM feed_item WHERE id IN (%s)", $ids_list));
 		
 		// Fire event
-		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr = DevblocksPlatform::services()->event();
 		$eventMgr->trigger(
 			new Model_DevblocksEvent(
 				'context.delete',
@@ -214,7 +262,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	
 	static function maint() {
 		// Fire event
-		$eventMgr = DevblocksPlatform::getEventService();
+		$eventMgr = DevblocksPlatform::services()->event();
 		$eventMgr->trigger(
 			new Model_DevblocksEvent(
 				'context.maint',
@@ -313,7 +361,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	 * @return array
 	 */
 	static function search($columns, $params, $limit=10, $page=0, $sortBy=null, $sortAsc=null, $withCounts=true) {
-		$db = DevblocksPlatform::getDatabaseService();
+		$db = DevblocksPlatform::services()->database();
 		
 		// Build search queries
 		$query_parts = self::getSearchQueryComponents($columns,$params,$sortBy,$sortAsc);
@@ -780,7 +828,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 	function render() {
 		$this->_sanitize();
 		
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('id', $this->id);
 		$tpl->assign('view', $this);
 
@@ -821,7 +869,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 	}
 	
 	function renderCriteria($field) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('id', $this->id);
 		$tpl->assign('view', $this);
 
@@ -1007,7 +1055,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		if(empty($context_id))
 			return '';
 	
-		$url_writer = DevblocksPlatform::getUrlService();
+		$url_writer = DevblocksPlatform::services()->url();
 		$url = $url_writer->writeNoProxy('c=profiles&type=feed_item&id='.$context_id, true);
 		return $url;
 	}
@@ -1131,7 +1179,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$token_values = $this->_importModelCustomFieldsAsValues($item, $token_values);
 			
 			// URL
-			$url_writer = DevblocksPlatform::getUrlService();
+			$url_writer = DevblocksPlatform::services()->url();
 			$token_values['record_url'] = $url_writer->writeNoProxy(sprintf("c=profiles&type=feed_item&id=%d-%s",$item->id, DevblocksPlatform::strToPermalink($item->title)), true);
 			
 			// Feed
@@ -1154,6 +1202,18 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		);
 
 		return true;
+	}
+	
+	function getKeyToDaoFieldMap() {
+		return [
+			'created_date' => DAO_FeedItem::CREATED_DATE,
+			'feed_id' => DAO_FeedItem::FEED_ID,
+			'guid' => DAO_FeedItem::GUID,
+			'id' => DAO_FeedItem::ID,
+			'is_closed' => DAO_FeedItem::IS_CLOSED,
+			'title' => DAO_FeedItem::TITLE,
+			'url' => DAO_FeedItem::URL,
+		];
 	}
 
 	function lazyLoadContextValues($token, $dictionary) {
@@ -1246,7 +1306,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 	}
 	
 	function renderPeekPopup($context_id=0, $view_id='', $edit=false) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('view_id', $view_id);
 
 		$context = CerberusContexts::CONTEXT_FEED_ITEM;

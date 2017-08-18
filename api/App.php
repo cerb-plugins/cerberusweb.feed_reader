@@ -2,7 +2,7 @@
 if (class_exists('CerberusCronPageExtension')):
 class FeedsCron extends CerberusCronPageExtension {
 	public function run() {
-		$logger = DevblocksPlatform::getConsoleLog();
+		$logger = DevblocksPlatform::services()->log();
 		$logger->info("[Feeds] Starting Feed Reader");
 			
 		$feeds = DAO_Feed::getWhere();
@@ -156,7 +156,7 @@ class Page_Feeds extends CerberusPageExtension {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
 		
 		$active_worker = CerberusApplication::getActiveWorker();
-		$url_writer = DevblocksPlatform::getUrlService();
+		$url_writer = DevblocksPlatform::services()->url();
 		
 		// Generate hash
 		$hash = md5($view_id.$active_worker->id.time());
@@ -227,7 +227,7 @@ class Page_Feeds extends CerberusPageExtension {
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id'],'string');
 		
 		$active_worker = CerberusApplication::getActiveWorker();
-		$url_writer = DevblocksPlatform::getUrlService();
+		$url_writer = DevblocksPlatform::services()->url();
 		
 		// Generate hash
 		$hash = md5($view_id.$active_worker->id.time());
@@ -310,7 +310,7 @@ class Page_Feeds extends CerberusPageExtension {
 
 class ExplorerToolbar_FeedReaderItem extends Extension_ExplorerToolbar {
 	function render(Model_ExplorerSet $item) {
-		$tpl = DevblocksPlatform::getTemplateService();
+		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('item', $item);
 		$tpl->display('devblocks:cerberusweb.feed_reader::feeds/item/explorer_toolbar.tpl');
 	}

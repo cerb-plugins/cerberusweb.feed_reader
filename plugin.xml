@@ -4,20 +4,20 @@
 	<name>Collaborative Feed Reader</name>
 	<description>This plugin adds new records for Feeds and Feed Items.  These can be used to share monitoring duties on RSS/Atom feeds: moderate blog comments, audit wiki changes, read new forum posts, track vendor announcements, etc.</description>
 	<author>Webgroup Media, LLC.</author>
-	<version>1.3.1</version>
+	<version>1.4.0</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.feed_reader.git</link>
 	<image>plugin.png</image>
 	
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="8.0" max="8.0.99" />
+		<app_version min="8.1" max="8.1.99" />
 	</requires>
 	
 	<!-- Plugin Dependencies -->
 	
 	<dependencies>
-		<require plugin_id="cerberusweb.core" version="8.0.0" />
+		<require plugin_id="cerberusweb.core" version="8.1.0" />
 	</dependencies>
 	
 	<!-- Patches -->
@@ -105,11 +105,22 @@
 						<data key="links" />
 						<data key="search" />
 						<data key="va_variable" />
+						<data key="watchers" />
 						<data key="workspace" />
 					</value>
 				</param>
+				<param key="acl">
+					<value>
+						<data key="comment" />
+						<data key="create" />
+						<data key="delete" />
+						<data key="export" />
+						<data key="import" />
+						<data key="update" />
+					</value>
+				</param>
 			</params>
-		</extension>	
+		</extension>
 	
 		<extension point="devblocks.context">
 			<id>cerberusweb.contexts.feed.item</id>
@@ -135,10 +146,20 @@
 						<data key="search" />
 						<data key="snippets" />
 						<data key="va_variable" />
+						<data key="watchers" />
 						<data key="workspace" />
 					</value>
 				</param>
 				<param key="context_expand_export" value="feed_" />
+				<param key="acl">
+					<value>
+						<data key="comment" />
+						<data key="delete" />
+						<data key="export" />
+						<data key="update" />
+						<data key="update.bulk" />
+					</value>
+				</param>
 			</params>
 		</extension>
 	
