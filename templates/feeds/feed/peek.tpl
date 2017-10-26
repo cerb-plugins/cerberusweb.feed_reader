@@ -23,20 +23,6 @@
 				<input type="text" name="url" value="{$model->url}" size="24" style="width:100%;">
 			</td>
 		</tr>
-
-		{* Watchers *}
-		<tr>
-			<td width="0%" nowrap="nowrap" valign="top" align="right">{'common.watchers'|devblocks_translate|capitalize}: </td>
-			<td width="100%">
-				{if empty($model->id)}
-					<button type="button" class="chooser_watcher"><span class="glyphicons glyphicons-search"></span></button>
-					<ul class="chooser-container bubbles" style="display:block;"></ul>
-				{else}
-					{$object_watchers = DAO_ContextLink::getContextLinks(CerberusContexts::CONTEXT_FEED, array($model->id), CerberusContexts::CONTEXT_WORKER)}
-					{include file="devblocks:cerberusweb.core::internal/watchers/context_follow_button.tpl" context=CerberusContexts::CONTEXT_FEED context_id=$model->id full=true}
-				{/if}
-			</td>
-		</tr>
 	</table>
 </fieldset>
 
