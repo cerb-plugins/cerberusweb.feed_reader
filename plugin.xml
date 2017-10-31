@@ -4,20 +4,20 @@
 	<name>Collaborative Feed Reader</name>
 	<description>This plugin adds new records for Feeds and Feed Items.  These can be used to share monitoring duties on RSS/Atom feeds: moderate blog comments, audit wiki changes, read new forum posts, track vendor announcements, etc.</description>
 	<author>Webgroup Media, LLC.</author>
-	<version>1.5.0</version>
+	<version>1.5.1</version>
 	<link>http://www.cerbweb.com/book/latest/plugins/cerberusweb.feed_reader.git</link>
 	<image>plugin.png</image>
 	
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="8.2" max="8.2.99" />
+		<app_version min="8.2.1" max="8.2.99" />
 	</requires>
 	
 	<!-- Plugin Dependencies -->
 	
 	<dependencies>
-		<require plugin_id="cerberusweb.core" version="8.2.0" />
+		<require plugin_id="cerberusweb.core" version="8.2.1" />
 	</dependencies>
 	
 	<!-- Patches -->
@@ -100,9 +100,9 @@
 				<param key="view_class" value="View_Feed" />
 				<param key="options">
 					<value>
-						<data key="create" />
 						<data key="custom_fields" />
 						<data key="links" />
+						<data key="records" />
 						<data key="search" />
 						<data key="va_variable" />
 						<data key="watchers" />
@@ -143,6 +143,7 @@
 					<value>
 						<data key="custom_fields" />
 						<data key="links" />
+						<data key="records" />
 						<data key="search" />
 						<data key="snippets" />
 						<data key="va_variable" />
@@ -153,6 +154,7 @@
 				<param key="context_expand_export" value="feed_" />
 				<param key="acl">
 					<value>
+						<data key="create" />
 						<data key="comment" />
 						<data key="delete" />
 						<data key="export" />
@@ -204,7 +206,7 @@
 	
 		<!-- Page -->
 		
- 		<extension point="cerberusweb.page">
+		<extension point="cerberusweb.page">
 			<id>feeds.page</id>
 			<name>Feeds Page</name>
 			<class>

@@ -29,7 +29,12 @@ class DAO_Feed extends Cerb_ORMHelper {
 			->setMaxLength(255)
 			->setRequired(true)
 			;
-
+		$validation
+			->addField('_links')
+			->string()
+			->setMaxLength(65535)
+			;
+			
 		return $validation->getFields();
 	}
 
@@ -46,6 +51,9 @@ class DAO_Feed extends Cerb_ORMHelper {
 	}
 	
 	static function update($ids, $fields) {
+		$context = CerberusContexts::CONTEXT_FEED;
+		self::_updateAbstract($context, $ids, $fields);
+		
 		parent::_update($ids, 'feed', $fields);
 	}
 	
@@ -629,6 +637,10 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 };
 
 class Context_Feed extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
+	static function isCreateableByActor(array $fields, $actor) {
+		return true;
+	}
+	
 	static function isReadableByActor($models, $actor) {
 		// Everyone can view
 		return CerberusContexts::allowEverything($models);
@@ -766,9 +778,20 @@ class Context_Feed extends Extension_DevblocksContext implements IDevblocksConte
 	function getKeyToDaoFieldMap() {
 		return [
 			'id' => DAO_Feed::ID,
+			'links' => '_links',
 			'name' => DAO_Feed::NAME,
 			'url' => DAO_Feed::URL,
 		];
+	}
+	
+	function getDaoFieldsFromKeyAndValue($key, $value, &$out_fields, &$error) {
+		switch(DevblocksPlatform::strLower($key)) {
+			case 'links':
+				$this->_getDaoFieldsLinks($value, $out_fields, $error);
+				break;
+		}
+		
+		return true;
 	}
 
 	function lazyLoadContextValues($token, $dictionary) {

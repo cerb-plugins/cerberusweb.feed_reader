@@ -22,6 +22,8 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		$validation
 			->addField(self::FEED_ID)
 			->id()
+			->setRequired(true)
+			->addValidator($validation->validators()->contextId(CerberusContexts::CONTEXT_FEED))
 			;
 		// varchar(64)
 		$validation
@@ -45,19 +47,29 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			->addField(self::TITLE)
 			->string()
 			->setMaxLength(255)
+			->setRequired(true)
 			;
 		// varchar(255)
 		$validation
 			->addField(self::URL)
 			->string()
 			->setMaxLength(255)
+			->setRequired(true)
 			;
-
+		$validation
+			->addField('_links')
+			->string()
+			->setMaxLength(65535)
+			;
+			
 		return $validation->getFields();
 	}
 
 	static function create($fields) {
 		$db = DevblocksPlatform::services()->database();
+		
+		if(!isset($fields[self::CREATED_DATE]))
+			$fields[self::CREATED_DATE] = time();
 		
 		$sql = "INSERT INTO feed_item () VALUES ()";
 		$db->ExecuteMaster($sql);
@@ -71,6 +83,9 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	static function update($ids, $fields, $check_deltas=true) {
 		if(!is_array($ids))
 			$ids = array($ids);
+		
+		$context = CerberusContexts::CONTEXT_FEED_ITEM;
+		self::_updateAbstract($context, $ids, $fields);
 		
 		// Make a diff for the requested objects in batches
 		
@@ -625,7 +640,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 					
 				// Valid custom fields
 				default:
-					if('cf_' == substr($field_key,0,3))
+					if(DevblocksPlatform::strStartsWith($field_key, 'cf_'))
 						$pass = $this->_canSubtotalCustomField($field_key);
 					break;
 			}
@@ -1036,6 +1051,10 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 };
 
 class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek {
+	static function isCreateableByActor(array $fields, $actor) {
+		return true;
+	}
+	
 	static function isReadableByActor($models, $actor) {
 		// Everyone can view
 		return CerberusContexts::allowEverything($models);
@@ -1101,7 +1120,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 	function getDefaultProperties() {
 		return array(
 			'feed__label',
-			'created_date',
+			'created_at',
 			'is_closed',
 			'url',
 		);
@@ -1129,7 +1148,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$token_labels = array(
 			'_label' => $prefix,
 			'id' => $prefix.$translate->_('common.id'),
-			'created_date' => $prefix.$translate->_('common.created'),
+			'created_at' => $prefix.$translate->_('common.created'),
 			'guid' => $prefix.$translate->_('dao.feed_item.guid'),
 			'is_closed' => $prefix.$translate->_('dao.feed_item.is_closed'),
 			'title' => $prefix.$translate->_('common.title'),
@@ -1141,7 +1160,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$token_types = array(
 			'_label' => 'context_url',
 			'id' => Model_CustomField::TYPE_NUMBER,
-			'created_date' => Model_CustomField::TYPE_DATE,
+			'created_at' => Model_CustomField::TYPE_DATE,
 			'guid' => Model_CustomField::TYPE_SINGLE_LINE,
 			'is_closed' => Model_CustomField::TYPE_CHECKBOX,
 			'title' => Model_CustomField::TYPE_SINGLE_LINE,
@@ -1168,7 +1187,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$token_values['_loaded'] = true;
 			$token_values['_label'] = $item->title;
 			$token_values['id'] = $item->id;
-			$token_values['created_date'] = $item->created_date;
+			$token_values['created_at'] = $item->created_date;
 			$token_values['guid'] = $item->guid;
 			$token_values['is_closed'] = $item->is_closed;
 			$token_values['title'] = $item->title;
@@ -1205,14 +1224,25 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 	
 	function getKeyToDaoFieldMap() {
 		return [
-			'created_date' => DAO_FeedItem::CREATED_DATE,
+			'created_at' => DAO_FeedItem::CREATED_DATE,
 			'feed_id' => DAO_FeedItem::FEED_ID,
 			'guid' => DAO_FeedItem::GUID,
 			'id' => DAO_FeedItem::ID,
 			'is_closed' => DAO_FeedItem::IS_CLOSED,
+			'links' => '_links',
 			'title' => DAO_FeedItem::TITLE,
 			'url' => DAO_FeedItem::URL,
 		];
+	}
+	
+	function getDaoFieldsFromKeyAndValue($key, $value, &$out_fields, &$error) {
+		switch(DevblocksPlatform::strLower($key)) {
+			case 'links':
+				$this->_getDaoFieldsLinks($value, $out_fields, $error);
+				break;
+		}
+		
+		return true;
 	}
 
 	function lazyLoadContextValues($token, $dictionary) {
