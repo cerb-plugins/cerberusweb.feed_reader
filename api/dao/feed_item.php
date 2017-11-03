@@ -1051,10 +1051,6 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 };
 
 class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek {
-	static function isCreateableByActor(array $fields, $actor) {
-		return true;
-	}
-	
 	static function isReadableByActor($models, $actor) {
 		// Everyone can view
 		return CerberusContexts::allowEverything($models);

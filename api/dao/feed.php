@@ -637,10 +637,6 @@ class View_Feed extends C4_AbstractView implements IAbstractView_QuickSearch {
 };
 
 class Context_Feed extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek, IDevblocksContextImport {
-	static function isCreateableByActor(array $fields, $actor) {
-		return true;
-	}
-	
 	static function isReadableByActor($models, $actor) {
 		// Everyone can view
 		return CerberusContexts::allowEverything($models);
