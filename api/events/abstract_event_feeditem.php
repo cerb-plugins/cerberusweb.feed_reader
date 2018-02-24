@@ -122,7 +122,7 @@ abstract class AbstractEvent_FeedItem extends Extension_DevblocksEvent {
 			/*
 			'item_feed_id' => array(
 				'label' => 'Feed',
-				'context' => 'cerberusweb.contexts.feed',
+				'context' => CerberusContexts::CONTEXT_FEED,
 			),
 			*/
 		);

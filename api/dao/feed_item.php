@@ -140,8 +140,8 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		
 		$update->markInProgress();
 		
-		$change_fields = array();
-		$custom_fields = array();
+		$change_fields = [];
+		$custom_fields = [];
 
 		if(is_array($do))
 		foreach($do as $k => $v) {
@@ -152,7 +152,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 					
 				default:
 					// Custom fields
-					if(substr($k,0,3)=="cf_") {
+					if(DevblocksPlatform::strStartsWith($k, 'cf_')) {
 						$custom_fields[substr($k,3)] = $v;
 					}
 					break;
@@ -1204,7 +1204,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		// Feed
 		$merge_token_labels = array();
 		$merge_token_values = array();
-		CerberusContexts::getContext('cerberusweb.contexts.feed', null, $merge_token_labels, $merge_token_values, '', true);
+		CerberusContexts::getContext(CerberusContexts::CONTEXT_FEED, null, $merge_token_labels, $merge_token_values, '', true);
 
 		CerberusContexts::merge(
 			'feed_',
@@ -1301,7 +1301,6 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$view->renderSortBy = SearchFields_FeedItem::CREATED_DATE;
 		$view->renderSortAsc = false;
 		$view->renderLimit = 10;
-		$view->renderFilters = false;
 		$view->renderTemplate = 'contextlinks_chooser';
 		
 		return $view;

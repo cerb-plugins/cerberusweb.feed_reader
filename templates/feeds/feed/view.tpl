@@ -1,4 +1,4 @@
-{$view_context = 'cerberusweb.contexts.feed'}
+{$view_context = CerberusContexts::CONTEXT_FEED}
 {$view_fields = $view->getColumnsAvailable()}
 {$results = $view->getData()}
 {$total = $results[1]}

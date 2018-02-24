@@ -105,7 +105,7 @@ class Page_Feeds extends CerberusPageExtension {
 	
 				// View marquee
 				if(!empty($id) && !empty($view_id)) {
-					C4_AbstractView::setMarqueeContextCreated($view_id, 'cerberusweb.contexts.feed', $id);
+					C4_AbstractView::setMarqueeContextCreated($view_id, CerberusContexts::CONTEXT_FEED, $id);
 				}
 				
 			} else { // Edit
@@ -118,7 +118,7 @@ class Page_Feeds extends CerberusPageExtension {
 	
 				$fields = array(
 						DAO_Comment::CREATED => time(),
-						DAO_Comment::CONTEXT => 'cerberusweb.contexts.feed',
+						DAO_Comment::CONTEXT => CerberusContexts::CONTEXT_FEED,
 						DAO_Comment::CONTEXT_ID => $id,
 						DAO_Comment::COMMENT => $comment,
 						DAO_Comment::OWNER_CONTEXT => CerberusContexts::CONTEXT_WORKER,
@@ -126,10 +126,11 @@ class Page_Feeds extends CerberusPageExtension {
 				);
 				$comment_id = DAO_Comment::create($fields, $also_notify_worker_ids);
 			}
-				
-			// Custom fields
-			@$field_ids = DevblocksPlatform::importGPC($_REQUEST['field_ids'], 'array', array());
-			DAO_CustomFieldValue::handleFormPost('cerberusweb.contexts.feed', $id, $field_ids);
+			
+			// Custom field saves
+			@$field_ids = DevblocksPlatform::importGPC($_POST['field_ids'], 'array', []);
+			if(!DAO_CustomFieldValue::handleFormPost(CerberusContexts::CONTEXT_FEED, $id, $field_ids, $error))
+				throw new Exception_DevblocksAjaxValidationError($error);
 		}
 	}
 	

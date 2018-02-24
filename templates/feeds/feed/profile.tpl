@@ -1,4 +1,4 @@
-{$page_context = 'cerberusweb.contexts.feed'}
+{$page_context = CerberusContexts::CONTEXT_FEED}
 {$page_context_id = $feed->id}
 {$is_writeable = Context_Feed::isWriteableByActor($feed, $active_worker)}
 
