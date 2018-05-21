@@ -22,7 +22,7 @@
 		<tr>
 			<td width="1%" valign="top" nowrap="nowrap"><b>{'common.url'|devblocks_translate|upper}:</b></td>
 			<td width="99%" valign="top">
-				<a href="{$model->url}" target="_blank">{$model->url|truncate:64}</a>
+				<a href="{$model->url}" target="_blank" rel="noopener noreferrer">{$model->url|truncate:64}</a>
 			</td>
 		</tr>
 		<tr>

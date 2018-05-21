@@ -87,7 +87,7 @@
 				</td>
 			{elseif $column=="t_url"}
 				<td data-column="{$column}">
-					<a href="{$result.$column}" target="_blank">{$result.$column|truncate:64}</a>
+					<a href="{$result.$column}" target="_blank" rel="noopener noreferrer">{$result.$column|truncate:64}</a>
 				</td>
 			{else}
 				<td data-column="{$column}">{$result.$column}</td>

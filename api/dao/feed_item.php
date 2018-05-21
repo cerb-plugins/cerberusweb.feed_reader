@@ -331,12 +331,6 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			'tables' => &$tables,
 		);
 		
-		array_walk_recursive(
-			$params,
-			array('DAO_FeedItem', '_translateVirtualParameters'),
-			$args
-		);
-		
 		return array(
 			'primary_table' => 'feed_item',
 			'select' => $select_sql,
@@ -344,23 +338,6 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			'where' => $where_sql,
 			'sort' => $sort_sql,
 		);
-	}
-	
-	private static function _translateVirtualParameters($param, $key, &$args) {
-		if(!is_a($param, 'DevblocksSearchCriteria'))
-			return;
-	
-		$from_context = CerberusContexts::CONTEXT_FEED_ITEM;
-		$from_index = 'feed_item.id';
-		
-		$param_key = $param->field;
-		settype($param_key, 'string');
-		
-		switch($param_key) {
-			case SearchFields_FeedItem::VIRTUAL_HAS_FIELDSET:
-				self::_searchComponentsVirtualHasFieldset($param, $from_context, $from_index, $args['join_sql'], $args['where_sql']);
-				break;
-		}
 	}
 	
 	/**
@@ -474,6 +451,10 @@ class SearchFields_FeedItem extends DevblocksSearchFields {
 				return self::_getWhereSQLFromVirtualSearchField($param, CerberusContexts::CONTEXT_FEED, 'feed_item.feed_id');
 				break;
 				
+			case self::VIRTUAL_HAS_FIELDSET:
+				return self::_getWhereSQLFromVirtualSearchSqlField($param, CerberusContexts::CONTEXT_CUSTOM_FIELDSET, sprintf('SELECT context_id FROM context_to_custom_fieldset WHERE context = %s AND custom_fieldset_id IN (%%s)', Cerb_ORMHelper::qstr(CerberusContexts::CONTEXT_FEED_ITEM)), self::getPrimaryKey());
+				break;
+				
 			case self::VIRTUAL_WATCHERS:
 				return self::_getWhereSQLFromWatchersField($param, CerberusContexts::CONTEXT_FEED_ITEM, self::getPrimaryKey());
 				break;
@@ -576,12 +557,6 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 			SearchFields_FeedItem::VIRTUAL_FEED_SEARCH,
 			SearchFields_FeedItem::VIRTUAL_HAS_FIELDSET,
 			SearchFields_FeedItem::VIRTUAL_WATCHERS,
-		));
-		
-		$this->addParamsHidden(array(
-			SearchFields_FeedItem::GUID,
-			SearchFields_FeedItem::ID,
-			SearchFields_FeedItem::VIRTUAL_FEED_SEARCH,
 		));
 		
 		$this->doResetCriteria();
@@ -733,6 +708,14 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 						['type' => 'chooser', 'context' => CerberusContexts::CONTEXT_FEED, 'q' => ''],
 					]
 				),
+			'fieldset' =>
+				array(
+					'type' => DevblocksSearchCriteria::TYPE_VIRTUAL,
+					'options' => array('param_key' => SearchFields_FeedItem::VIRTUAL_HAS_FIELDSET),
+					'examples' => [
+						['type' => 'search', 'context' => CerberusContexts::CONTEXT_CUSTOM_FIELDSET, 'qr' => 'context:' . CerberusContexts::CONTEXT_FEED_ITEM],
+					]
+				),
 			'id' => 
 				array(
 					'type' => DevblocksSearchCriteria::TYPE_NUMBER,
@@ -765,7 +748,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 		
 		// Add quick search links
 		
-		$fields = self::_appendVirtualFiltersFromQuickSearchContexts('links', $fields, 'links');
+		$fields = self::_appendVirtualFiltersFromQuickSearchContexts('links', $fields, 'links', SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK);
 		
 		// Add searchable custom fields
 		
@@ -823,6 +806,10 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 				);
 				break;
 		
+			case 'fieldset':
+				return DevblocksSearchCriteria::getVirtualQuickSearchParamFromTokens($field, $tokens, '*_has_fieldset');
+				break;
+			
 			case 'watchers':
 				return DevblocksSearchCriteria::getWatcherParamFromTokens(SearchFields_FeedItem::VIRTUAL_WATCHERS, $tokens);
 				break;
@@ -882,72 +869,6 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 		}
 	}
 	
-	function renderCriteria($field) {
-		$tpl = DevblocksPlatform::services()->template();
-		$tpl->assign('id', $this->id);
-		$tpl->assign('view', $this);
-
-		switch($field) {
-			case SearchFields_FeedItem::GUID:
-			case SearchFields_FeedItem::TITLE:
-			case SearchFields_FeedItem::URL:
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__string.tpl');
-				break;
-				
-			case SearchFields_FeedItem::ID:
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__number.tpl');
-				break;
-				
-			case SearchFields_FeedItem::IS_CLOSED:
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__bool.tpl');
-				break;
-				
-			case SearchFields_FeedItem::CREATED_DATE:
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__date.tpl');
-				break;
-				
-			case SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK:
-				$contexts = Extension_DevblocksContext::getAll(false);
-				$tpl->assign('contexts', $contexts);
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_link.tpl');
-				break;
-				
-			case SearchFields_FeedItem::VIRTUAL_HAS_FIELDSET:
-				$this->_renderCriteriaHasFieldset($tpl, CerberusContexts::CONTEXT_FEED_ITEM);
-				break;
-				
-			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__context_worker.tpl');
-				break;
-				
-			case SearchFields_FeedItem::FEED_ID:
-				$options = array();
-				$feeds = DAO_Feed::getWhere();
-				
-				if(is_array($feeds))
-				foreach($feeds as $feed_id => $feed) { /* @var $feed Model_FeedItem */
-					$options[$feed_id] = $feed->name;
-				}
-				
-				$tpl->assign('options', $options);
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__list.tpl');
-				break;
-				
-			case SearchFields_FeedItem::FULLTEXT_COMMENT_CONTENT:
-				$tpl->display('devblocks:cerberusweb.core::internal/views/criteria/__fulltext.tpl');
-				break;
-				
-			default:
-				// Custom Fields
-				if('cf_' == substr($field,0,3)) {
-					$this->_renderCriteriaCustomField($tpl, substr($field,3));
-				} else {
-					echo ' ';
-				}
-				break;
-		}
-	}
-
 	function renderCriteriaParam($param) {
 		$field = $param->field;
 		$values = !is_array($param->value) ? array($param->value) : $param->value;
@@ -1072,6 +993,44 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$url_writer = DevblocksPlatform::services()->url();
 		$url = $url_writer->writeNoProxy('c=profiles&type=feed_item&id='.$context_id, true);
 		return $url;
+	}
+	
+	function profileGetFields($model=null) {
+		$translate = DevblocksPlatform::getTranslationService();
+		$properties = [];
+		
+		if(is_null($model))
+			$model = new Model_FeedItem();
+		
+		$properties['name'] = array(
+			'label' => mb_ucfirst($translate->_('common.name')),
+			'type' => Model_CustomField::TYPE_LINK,
+			'value' => $model->id,
+			'params' => [
+				'context' => self::ID,
+			],
+		);
+		
+		$properties['feed_id'] = array(
+			'label' => mb_ucfirst($translate->_('dao.feed_item.feed_id')),
+			'type' => Model_CustomField::TYPE_LINK,
+			'params' => array('context' => CerberusContexts::CONTEXT_FEED),
+			'value' => $model->feed_id,
+		);
+
+		$properties['is_closed'] = array(
+			'label' => mb_ucfirst($translate->_('dao.feed_item.is_closed')),
+			'type' => Model_CustomField::TYPE_CHECKBOX,
+			'value' => $model->is_closed,
+		);
+
+		$properties['created_date'] = array(
+			'label' => mb_ucfirst($translate->_('common.created')),
+			'type' => Model_CustomField::TYPE_DATE,
+			'value' => $model->created_date,
+		);
+		
+		return $properties;
 	}
 	
 	function getMeta($context_id) {
