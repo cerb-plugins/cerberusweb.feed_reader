@@ -25,6 +25,6 @@ class PageSection_ProfilesFeed extends Extension_PageSection {
 		
 		$context = CerberusContexts::CONTEXT_FEED;
 		
-		Page_Profiles::renderProfile($context, $context_id);
+		Page_Profiles::renderProfile($context, $context_id, $stack);
 	}
 };

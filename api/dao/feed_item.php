@@ -663,7 +663,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 			
 			default:
 				// Custom fields
-				if('cf_' == substr($column,0,3)) {
+				if(DevblocksPlatform::strStartsWith($column, 'cf_')) {
 					$counts = $this->_getSubtotalCountForCustomColumn($context, $column);
 				}
 				
@@ -972,6 +972,8 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 };
 
 class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksContextProfile, IDevblocksContextPeek {
+	const ID = 'cerberusweb.contexts.feed.item';
+	
 	static function isReadableByActor($models, $actor) {
 		// Everyone can view
 		return CerberusContexts::allowEverything($models);
@@ -1011,6 +1013,12 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			],
 		);
 		
+		$properties['id'] = array(
+			'label' => mb_ucfirst($translate->_('common.id')),
+			'type' => Model_CustomField::TYPE_NUMBER,
+			'value' => $model->id,
+		);
+		
 		$properties['feed_id'] = array(
 			'label' => mb_ucfirst($translate->_('dao.feed_item.feed_id')),
 			'type' => Model_CustomField::TYPE_LINK,
@@ -1018,6 +1026,12 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			'value' => $model->feed_id,
 		);
 
+		$properties['guid'] = array(
+			'label' => mb_ucfirst($translate->_('dao.feed_item.guid')),
+			'type' => Model_CustomField::TYPE_SINGLE_LINE,
+			'value' => $model->guid,
+		);
+		
 		$properties['is_closed'] = array(
 			'label' => mb_ucfirst($translate->_('dao.feed_item.is_closed')),
 			'type' => Model_CustomField::TYPE_CHECKBOX,
@@ -1028,6 +1042,12 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			'label' => mb_ucfirst($translate->_('common.created')),
 			'type' => Model_CustomField::TYPE_DATE,
 			'value' => $model->created_date,
+		);
+		
+		$properties['url'] = array(
+			'label' => mb_ucfirst($translate->_('common.url')),
+			'type' => Model_CustomField::TYPE_URL,
+			'value' => $model->url,
 		);
 		
 		return $properties;

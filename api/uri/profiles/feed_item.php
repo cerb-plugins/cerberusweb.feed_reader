@@ -25,7 +25,7 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		
 		$context = CerberusContexts::CONTEXT_FEED_ITEM;
 		
-		Page_Profiles::renderProfile($context, $context_id);
+		Page_Profiles::renderProfile($context, $context_id, $stack);
 	}
 	
 	function savePeekPopupAction() {
