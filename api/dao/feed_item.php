@@ -470,7 +470,47 @@ class SearchFields_FeedItem extends DevblocksSearchFields {
 		
 		return false;
 	}
-
+	
+	static function getFieldForSubtotalKey($key, array $query_fields, array $search_fields, $primary_key) {
+		switch($key) {
+			case 'closed':
+				$key = 'isClosed';
+				break;
+				
+			case 'feed':
+				$key = 'feed.id';
+				break;
+		}
+		
+		return parent::getFieldForSubtotalKey($key, $query_fields, $search_fields, $primary_key);
+	}
+	
+	static function getLabelsForKeyValues($key, $values) {
+		switch($key) {
+			case SearchFields_FeedItem::FEED_ID:
+				$models = DAO_Feed::getIds($values);
+				$label_map = array_column(DevblocksPlatform::objectsToArrays($models), 'name', 'id');
+				if(in_array(0,$values))
+					$label_map[0] = DevblocksPlatform::translate('common.none');
+				return $label_map;
+				break;
+				
+			case SearchFields_FeedItem::ID:
+				$models = DAO_FeedItem::getIds($values);
+				$label_map = array_column(DevblocksPlatform::objectsToArrays($models), 'title', 'id');
+				if(in_array(0,$values))
+					$label_map[0] = DevblocksPlatform::translate('common.none');
+				return $label_map;
+				break;
+				
+			case SearchFields_FeedItem::IS_CLOSED:
+				return parent::_getLabelsForKeyBooleanValues();
+				break;
+		}
+		
+		return parent::getLabelsForKeyValues($key, $values);
+	}
+	
 	/**
 	 * @return DevblocksSearchField[]
 	 */
@@ -637,11 +677,9 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 		
 		switch($column) {
 			case SearchFields_FeedItem::FEED_ID:
-				$feeds = DAO_Feed::getWhere(); // [TODO] Cache!!
-				$label_map = array();
-				foreach($feeds as $feed_id => $feed) { /* @var $feed Model_Feed */
-					$label_map[$feed_id] = $feed->name;
-				}
+				$label_map = function(array $values) use ($column) {
+					return SearchFields_FeedItem::getLabelsForKeyValues($column, $values);
+				};
 				$counts = $this->_getSubtotalCountForStringColumn($context, $column, $label_map, 'in', 'options[]');
 				break;
 
@@ -879,25 +917,10 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 				break;
 				
 			case SearchFields_FeedItem::FEED_ID:
-				$feeds = DAO_Feed::getWhere();
-				$strings = array();
-
-				if(empty($values)) {
-					echo DevblocksPlatform::strEscapeHtml("(blank)");
-					break;
-				}
-				
-				foreach($values as $val) {
-					if(empty($val))
-						$strings[] = "";
-					elseif(!isset($feeds[$val]))
-						continue;
-					else
-						$strings[] = DevblocksPlatform::strEscapeHtml($feeds[$val]->name);
-				}
-				echo implode(", ", $strings);
+				$label_map = SearchFields_FeedItem::getLabelsForKeyValues($field, $values);
+				parent::_renderCriteriaParamString($param, $label_map);
 				break;
-					
+				
 			default:
 				parent::renderCriteriaParam($param);
 				break;
