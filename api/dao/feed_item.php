@@ -227,7 +227,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	 * @return Model_FeedItem[]
 	 */
 	static private function _getObjectsFromResult($rs) {
-		$objects = array();
+		$objects = [];
 		
 		if(!($rs instanceof mysqli_result))
 			return false;
@@ -297,7 +297,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 	public static function getSearchQueryComponents($columns, $params, $sortBy=null, $sortAsc=null) {
 		$fields = SearchFields_FeedItem::getFields();
 		
-		list($tables,$wheres) = parent::_parseSearchParams($params, $columns, 'SearchFields_FeedItem', $sortBy);
+		list(,$wheres) = parent::_parseSearchParams($params, $columns, 'SearchFields_FeedItem', $sortBy);
 		
 		$select_sql = sprintf("SELECT ".
 			"feed_item.id as %s, ".
@@ -323,14 +323,6 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			
 		$sort_sql = self::_buildSortClause($sortBy, $sortAsc, $fields, $select_sql, 'SearchFields_FeedItem');
 	
-		// Translate virtual fields
-		
-		$args = array(
-			'join_sql' => &$join_sql,
-			'where_sql' => &$where_sql,
-			'tables' => &$tables,
-		);
-		
 		return array(
 			'primary_table' => 'feed_item',
 			'select' => $select_sql,
@@ -379,7 +371,7 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 		if(!($rs instanceof mysqli_result))
 			return false;
 		
-		$results = array();
+		$results = [];
 		
 		while($row = mysqli_fetch_assoc($rs)) {
 			$object_id = intval($row[SearchFields_FeedItem::ID]);
@@ -629,7 +621,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 	function getSubtotalFields() {
 		$all_fields = $this->getParamsAvailable(true);
 		
-		$fields = array();
+		$fields = [];
 
 		if(is_array($all_fields))
 		foreach($all_fields as $field_key => $field_model) {
@@ -668,12 +660,12 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 	}
 	
 	function getSubtotalCounts($column) {
-		$counts = array();
+		$counts = [];
 		$fields = $this->getFields();
 		$context = CerberusContexts::CONTEXT_FEED_ITEM;
 
 		if(!isset($fields[$column]))
-			return array();
+			return [];
 		
 		switch($column) {
 			case SearchFields_FeedItem::FEED_ID:
@@ -795,7 +787,7 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 		
 		// Engine/schema examples: Comments
 		
-		$ft_examples = array();
+		$ft_examples = [];
 		
 		if(false != ($schema = Extension_DevblocksSearchSchema::get(Search_CommentContent::ID))) {
 			if(false != ($engine = $schema->getEngine())) {
@@ -822,12 +814,12 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 			case 'feed':
 				$field_key = SearchFields_FeedItem::FEED_ID;
 				$oper = null;
-				$patterns = array();
+				$patterns = [];
 				
 				CerbQuickSearchLexer::getOperArrayFromTokens($tokens, $oper, $patterns);
 				
 				$feeds = DAO_Feed::getWhere();
-				$values = array();
+				$values = [];
 				
 				if(is_array($patterns))
 				foreach($patterns as $pattern) {
@@ -955,22 +947,22 @@ class View_FeedItem extends C4_AbstractView implements IAbstractView_Subtotals, 
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_CONTEXT_LINK:
-				@$context_links = DevblocksPlatform::importGPC($_REQUEST['context_link'],'array',array());
+				@$context_links = DevblocksPlatform::importGPC($_REQUEST['context_link'],'array',[]);
 				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$context_links);
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_HAS_FIELDSET:
-				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',array());
+				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',[]);
 				$criteria = new DevblocksSearchCriteria($field,DevblocksSearchCriteria::OPER_IN,$options);
 				break;
 				
 			case SearchFields_FeedItem::VIRTUAL_WATCHERS:
-				@$worker_ids = DevblocksPlatform::importGPC($_REQUEST['worker_id'],'array',array());
+				@$worker_ids = DevblocksPlatform::importGPC($_REQUEST['worker_id'],'array',[]);
 				$criteria = new DevblocksSearchCriteria($field,$oper,$worker_ids);
 				break;
 				
 			case SearchFields_FeedItem::FEED_ID:
-				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',array());
+				@$options = DevblocksPlatform::importGPC($_REQUEST['options'],'array',[]);
 				$criteria = new DevblocksSearchCriteria($field,$oper,$options);
 				break;
 				
@@ -1175,7 +1167,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 			$token_types = array_merge($token_types, $custom_field_types);
 		
 		// Token values
-		$token_values = array();
+		$token_values = [];
 		
 		$token_values['_context'] = CerberusContexts::CONTEXT_FEED_ITEM;
 		$token_values['_types'] = $token_types;
@@ -1204,8 +1196,8 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		}
 		
 		// Feed
-		$merge_token_labels = array();
-		$merge_token_values = array();
+		$merge_token_labels = [];
+		$merge_token_values = [];
 		CerberusContexts::getContext(CerberusContexts::CONTEXT_FEED, null, $merge_token_labels, $merge_token_values, '', true);
 
 		CerberusContexts::merge(
@@ -1233,6 +1225,18 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		];
 	}
 	
+	function getKeyMeta() {
+		$keys = parent::getKeyMeta();
+		
+		$keys['feed_id']['notes'] = "The ID of the [feed](/docs/records/types/feed/) containing this item";
+		$keys['guid']['notes'] = "The globally unique ID of this item in the feed";
+		$keys['is_closed']['notes'] = "Is this item viewed/resolved?";
+		$keys['title']['notes'] = "The title of this feed item";
+		$keys['url']['notes'] = "The URL of this feed item";
+		
+		return $keys;
+	}
+	
 	function getDaoFieldsFromKeyAndValue($key, $value, &$out_fields, &$error) {
 		switch(DevblocksPlatform::strLower($key)) {
 			case 'links':
@@ -1241,6 +1245,11 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		}
 		
 		return true;
+	}
+	
+	function lazyLoadGetKeys() {
+		$lazy_keys = parent::lazyLoadGetKeys();
+		return $lazy_keys;
 	}
 
 	function lazyLoadContextValues($token, $dictionary) {
@@ -1251,10 +1260,10 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$context_id = $dictionary['id'];
 		
 		@$is_loaded = $dictionary['_loaded'];
-		$values = array();
+		$values = [];
 		
 		if(!$is_loaded) {
-			$labels = array();
+			$labels = [];
 			CerberusContexts::getContext($context, $context_id, $labels, $values, null, true, true);
 		}
 		
@@ -1283,8 +1292,6 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 	}
 	
 	function getChooserView($view_id=null) {
-		$active_worker = CerberusApplication::getActiveWorker();
-
 		if(empty($view_id))
 			$view_id = 'chooser_'.str_replace('.','_',$this->id).time().mt_rand(0,9999);
 		
@@ -1308,7 +1315,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		return $view;
 	}
 	
-	function getView($context=null, $context_id=null, $options=array(), $view_id=null) {
+	function getView($context=null, $context_id=null, $options=[], $view_id=null) {
 		$view_id = !empty($view_id) ? $view_id : str_replace('.','_',$this->id);
 		
 		$defaults = C4_AbstractViewModel::loadFromClass($this->getViewClass());
@@ -1317,7 +1324,7 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 		$view = C4_AbstractViewLoader::getView($view_id, $defaults);
 		//$view->name = 'Calls';
 		
-		$params_req = array();
+		$params_req = [];
 		
 		if(!empty($context) && !empty($context_id)) {
 			$params_req = array(
