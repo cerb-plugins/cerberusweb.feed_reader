@@ -144,8 +144,6 @@ class PageSection_ProfilesFeedItem extends Extension_PageSection {
 		@$ids = DevblocksPlatform::importGPC($_REQUEST['ids']);
 		@$view_id = DevblocksPlatform::importGPC($_REQUEST['view_id']);
 
-		$active_worker = CerberusApplication::getActiveWorker();
-		
 		$tpl = DevblocksPlatform::services()->template();
 		$tpl->assign('view_id', $view_id);
 
