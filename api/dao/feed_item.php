@@ -57,6 +57,11 @@ class DAO_FeedItem extends Cerb_ORMHelper {
 			->setRequired(true)
 			;
 		$validation
+			->addField('_fieldsets')
+			->string()
+			->setMaxLength(65535)
+			;
+		$validation
 			->addField('_links')
 			->string()
 			->setMaxLength(65535)
@@ -1239,9 +1244,6 @@ class Context_FeedItem extends Extension_DevblocksContext implements IDevblocksC
 	
 	function getDaoFieldsFromKeyAndValue($key, $value, &$out_fields, &$error) {
 		switch(DevblocksPlatform::strLower($key)) {
-			case 'links':
-				$this->_getDaoFieldsLinks($value, $out_fields, $error);
-				break;
 		}
 		
 		return true;
