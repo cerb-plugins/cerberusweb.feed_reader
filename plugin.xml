@@ -11,7 +11,7 @@
 	<!-- Requirements -->
 
 	<requires>
-		<app_version min="9.3" max="9.3.99" />
+		<app_version min="9.3.2" max="9.3.99" />
 	</requires>
 	
 	<!-- Plugin Dependencies -->
@@ -185,6 +185,7 @@
 						<data key="cerberusweb.contexts.worker" />
 					</value>
 				</param>
+				<param key="menu_key" value="Records:Custom Behavior:Feed item" />
 				<param key="options">
 					<value>
 						<data key="visibility" />
